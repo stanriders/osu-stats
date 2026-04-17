@@ -1,0 +1,66 @@
+version: '3.8'
+
+networks:
+  main:
+  logs:
+    external: true
+
+services:
+  backend:
+    build: ./backend/.
+    depends_on:
+      - postgres
+    ports:
+      - "127.0.0.1:3581:3001"
+    environment:
+      - ASPNETCORE_ENVIRONMENT
+      - ASPNETCORE_URLS=http://+:3001
+      - Database__Database=osustats
+      - Database__Host=postgres
+      - Database__Port=5432
+      - Database__Username=postgres
+      - Database__Password=postgres
+      - osuApi__ClientId
+      - osuApi__ClientSecret
+      - ScoreQueryInterval
+    volumes:
+      - ./logs/backend:/app/logs
+    networks:
+      - main
+      - logs
+    restart: unless-stopped
+    pull_policy: build
+
+  frontend:
+    build: ./frontend/.
+    depends_on:
+      - backend
+      - postgres
+    ports:
+      - "127.0.0.1:3580:3000"
+    volumes:
+      - ./logs/frontend:/app/logs
+    networks:
+      - main
+    restart: unless-stopped
+    pull_policy: build
+
+  postgres:
+    image: postgres:18
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=osustats
+      - PGDATA=/data/postgres
+    volumes:
+      - ./db:/data/postgres
+    networks:
+      - main
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
