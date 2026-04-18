@@ -65,7 +65,7 @@ public class ApiController(DatabaseContext databaseContext)
 
         var countByHour = await query
             .Where(x=> x.Date > DateTime.UtcNow.AddDays(-1))
-            .GroupBy(s => s.Date.Hour)
+            .GroupBy(s => new {s.Date.Date, s.Date.Hour})
             .Select(g => new
             {
                 Hour = g.Key,
