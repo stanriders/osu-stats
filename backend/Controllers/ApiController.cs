@@ -15,7 +15,7 @@ public class ApiController(DatabaseContext databaseContext)
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] int? rulesetId, [FromQuery] string[]? modsInclude, [FromQuery] string[]? modsExclude, [FromQuery] bool? hasSettings)
     {
-        var query = databaseContext.Scores.AsNoTracking();
+        var query = databaseContext.Scores.OrderBy(x => x.Date).AsNoTracking();
 
         if (rulesetId != null)
         {
@@ -71,7 +71,6 @@ public class ApiController(DatabaseContext databaseContext)
                 Hour = g.Key,
                 Count = g.Count()
             })
-            .OrderBy(x=> x.Hour)
             .ToListAsync();
 
         var totalCount = await query.CountAsync();
