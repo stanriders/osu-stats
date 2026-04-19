@@ -2,13 +2,19 @@ import type { Route } from "./+types/home";
 import useSWR from 'swr';
 import { Spinner } from "~/components/ui/spinner"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '~/components/ui/chart';
-import { Line, LineChart, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, Line, LineChart, XAxis, YAxis } from 'recharts';
 import { type ChartConfig } from "~/components/ui/chart"
 import { ButtonGroup } from "~/components/ui/button-group"
 import { Label } from '~/components/ui/label';
 import { Button } from '~/components/ui/button';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { Calendar } from "~/components/ui/calendar";
+import { format } from "date-fns"
+import { Checkbox } from "~/components/ui/checkbox";
+import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -21,63 +27,84 @@ const chartConfig = {} satisfies ChartConfig
 
 const fetcher = (...args : any[]) => fetch(...args).then(res => res.json());
 
-function Graphs({query}) {
-  const { data, error, isLoading } = useSWR(`https://osustats.stanr.info/api?${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
+function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boolean }) {
+  const { data, error, isLoading } = useSWR(`https://localhost:7093/api?${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
 
   if (error) return <div>failed to load</div>
   if (isLoading) return <div><Spinner /></div>
 
+  const countByMonth = data.unfiltered.countByMonth.map((item, index) => ({
+    date: item.date,
+    unfiltered: item.count,
+    filtered: data.filtered?.countByMonth[index]?.count
+  }));
+
+  const countByDay = data.unfiltered.countByDay.map((item, index) => ({
+    date: item.date,
+    unfiltered: item.count,
+    filtered: data.filtered?.countByDay[index]?.count
+  }));
+
+  const countByHour = data.unfiltered.countByHour.map((item, index) => ({
+    hour: item.hour,
+    unfiltered: item.count,
+    filtered: data.filtered?.countByHour[index]?.count
+  }));
+    
   return <div className='flex flex-wrap'>
-        <Card>
+        <Card className="w-fit">
           <CardContent>
-            <ChartContainer config={chartConfig} className="w-3xl">
-              <h1>Daily</h1>
-              <LineChart responsive data={data.count}>
-                <Line dataKey="count" />
+            <p>Total scores: {data.filtered?.totalCount}</p>
+            <p>Scores with replays: {data.filtered?.totalHasReplay}</p>
+            <p>Scores with perfect combo: {data.filtered?.totalPerfectCombo}</p>
+            <p>SS: {data.filtered?.totalSS}</p>
+            <p>S: {data.filtered?.totalS}</p>
+            <p>A: {data.filtered?.totalA}</p>
+            <p>Average accuracy: {data.filtered?.averageAccuracy * 100}</p>
+            <p>Average combo: {data.filtered?.averageCombo}</p>
+            <p>Average pp: {data.filtered?.averagePp}</p>
+          </CardContent>
+        </Card>
+        <Card className="w-fit">
+          <CardHeader>Monthly</CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="w-3xl h-64">
+              <AreaChart responsive data={countByMonth}>
+                {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
+                {data.filtered ? <Area dataKey="filtered" /> : <></>}
                 <XAxis dataKey="date" />
                 <YAxis />
                 <ChartTooltip content={<ChartTooltipContent />} />
-              </LineChart>
+              </AreaChart>
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="w-fit">
+          <CardHeader>Daily</CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="w-3xl">
-              <h1>Monthly</h1>
-              <LineChart responsive data={data.countByMonth}>
-                <Line dataKey="count" />
+            <ChartContainer config={chartConfig} className="w-3xl h-64">
+              <AreaChart responsive data={countByDay}>
+                {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
+                {data.filtered ? <Area dataKey="filtered" /> : <></>}
                 <XAxis dataKey="date" />
                 <YAxis />
                 <ChartTooltip content={<ChartTooltipContent />} />
-              </LineChart>
+              </AreaChart>
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="w-fit">
+          <CardHeader>Hourly</CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="w-3xl">
-              <h1>Hourly</h1>
-              <LineChart responsive data={data.countByHour}>
-                <Line dataKey="count" />
+            <ChartContainer config={chartConfig} className="w-3xl h-64">
+              <AreaChart responsive data={countByHour}>
+                {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
+                {data.filtered ? <Area dataKey="filtered" /> : <></>}
                 <XAxis dataKey="hour" />
                 <YAxis />
                 <ChartTooltip content={<ChartTooltipContent />} />
-              </LineChart>
+              </AreaChart>
             </ChartContainer>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <p>Total scores: {data.totalCount}</p>
-            <p>Scores with replays: {data.totalHasReplay}</p>
-            <p>Scores with perfect combo: {data.totalPerfectCombo}</p>
-            <p>SS: {data.totalSS}</p>
-            <p>S: {data.totalS}</p>
-            <p>A: {data.totalA}</p>
-            <p>Average accuracy: {data.averageAccuracy * 100}</p>
-            <p>Average combo: {data.averageCombo}</p>
-            <p>Average pp: {data.averagePp}</p>
           </CardContent>
         </Card>
       </div>;
@@ -87,6 +114,8 @@ export default function Home() {
   const [ruleset, setRuleset] = useState<number | null>(null);
   const [modsInclude, setModsInclude] = useState<Array<string>>([]);
   const [modsExclude, setModsExclude] = useState<Array<string>>([]);
+  const [date, setDate] = useState<Date>(new Date);
+  const [showUnfiltered, setShowUnfiltered] = useState<boolean>(true);
 
   let query = "";
   if (ruleset != null)
@@ -99,6 +128,8 @@ export default function Home() {
   if (modsExclude.length > 0) {
     query += modsExclude.map(x => `modsExclude=${x}&`).join("");
   }
+
+  query += `hourlyDate=${date.toISOString()}`
 
   const handleRulesetChange = (e: any) => {
     if (e.target.value == ruleset) {
@@ -125,7 +156,8 @@ export default function Home() {
   };
   return (
     <>
-      <Card>
+      <div className="flex">
+      <Card className="min-w-fit">
         <CardContent>
           <ButtonGroup>
             <Button variant={ruleset == 0 ? "secondary" : "outline"} value="0" onClick={handleRulesetChange}>osu!</Button>
@@ -135,49 +167,55 @@ export default function Home() {
           </ButtonGroup>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>Mods (include)</CardHeader>
-        <CardContent>
-          <ButtonGroup>
-            <Button variant={modsInclude.includes("DC") ? "secondary" : "outline"} value="DC" onClick={handleModIncludeChange}>DC</Button>
-            <Button variant={modsInclude.includes("EZ") ? "secondary" : "outline"} value="EZ" onClick={handleModIncludeChange}>EZ</Button>
-            <Button variant={modsInclude.includes("NF") ? "secondary" : "outline"} value="NF" onClick={handleModIncludeChange}>NF</Button>
-            <Button variant={modsInclude.includes("HT") ? "secondary" : "outline"} value="HT" onClick={handleModIncludeChange}>HT</Button>
-          </ButtonGroup>
-          <ButtonGroup>
-            <Button variant={modsInclude.includes("AC") ? "secondary" : "outline"} value="AC" onClick={handleModIncludeChange}>AC</Button>
-            <Button variant={modsInclude.includes("BL") ? "secondary" : "outline"} value="BL" onClick={handleModIncludeChange}>BL</Button>
-            <Button variant={modsInclude.includes("DT") ? "secondary" : "outline"} value="DT" onClick={handleModIncludeChange}>DT</Button>
-            <Button variant={modsInclude.includes("HD") ? "secondary" : "outline"} value="HD" onClick={handleModIncludeChange}>HD</Button>
-            <Button variant={modsInclude.includes("HR") ? "secondary" : "outline"} value="HR" onClick={handleModIncludeChange}>HR</Button>
-            <Button variant={modsInclude.includes("NC") ? "secondary" : "outline"} value="NC" onClick={handleModIncludeChange}>NC</Button>
-            <Button variant={modsInclude.includes("PF") ? "secondary" : "outline"} value="PF" onClick={handleModIncludeChange}>PF</Button>
-            <Button variant={modsInclude.includes("SD") ? "secondary" : "outline"} value="SD" onClick={handleModIncludeChange}>SD</Button>
-            <Button variant={modsInclude.includes("ST") ? "secondary" : "outline"} value="ST" onClick={handleModIncludeChange}>ST</Button>
-            <Button variant={modsInclude.includes("TC") ? "secondary" : "outline"} value="TC" onClick={handleModIncludeChange}>TC</Button>
-          </ButtonGroup>
-          <ButtonGroup>
-            <Button variant={modsInclude.includes("AL") ? "secondary" : "outline"} value="AL" onClick={handleModIncludeChange}>AL</Button>
-            <Button variant={modsInclude.includes("CL") ? "secondary" : "outline"} value="CL" onClick={handleModIncludeChange}>CL</Button>
-            <Button variant={modsInclude.includes("DA") ? "secondary" : "outline"} value="DA" onClick={handleModIncludeChange}>DA</Button>
-            <Button variant={modsInclude.includes("MR") ? "secondary" : "outline"} value="MR" onClick={handleModIncludeChange}>MR</Button>
-            <Button variant={modsInclude.includes("RD") ? "secondary" : "outline"} value="RD" onClick={handleModIncludeChange}>RD</Button>
-            <Button variant={modsInclude.includes("SG") ? "secondary" : "outline"} value="SG" onClick={handleModIncludeChange}>SG</Button>
-            <Button variant={modsInclude.includes("TP") ? "secondary" : "outline"} value="TP" onClick={handleModIncludeChange}>TP</Button>
-          </ButtonGroup>
-          <ButtonGroup>
-            <Button variant={modsInclude.includes("AP") ? "secondary" : "outline"} value="AP" onClick={handleModIncludeChange}>AP</Button>
-            <Button variant={modsInclude.includes("RX") ? "secondary" : "outline"} value="RX" onClick={handleModIncludeChange}>RX</Button>
-            <Button variant={modsInclude.includes("SO") ? "secondary" : "outline"} value="SO" onClick={handleModIncludeChange}>SO</Button>
-          </ButtonGroup>
-          <ButtonGroup>
-            fun mods
-          </ButtonGroup>
-        </CardContent>
+      <Card className="w-full max-w-lg">
+        <Collapsible>
+          <CollapsibleTrigger className="w-full"><CardHeader>Mods (include)</CardHeader></CollapsibleTrigger>
+          <CardContent>
+            <CollapsibleContent>
+                  <ButtonGroup>
+                    <Button variant={modsInclude.includes("DC") ? "secondary" : "outline"} value="DC" onClick={handleModIncludeChange}>DC</Button>
+                    <Button variant={modsInclude.includes("EZ") ? "secondary" : "outline"} value="EZ" onClick={handleModIncludeChange}>EZ</Button>
+                    <Button variant={modsInclude.includes("NF") ? "secondary" : "outline"} value="NF" onClick={handleModIncludeChange}>NF</Button>
+                    <Button variant={modsInclude.includes("HT") ? "secondary" : "outline"} value="HT" onClick={handleModIncludeChange}>HT</Button>
+                  </ButtonGroup>
+                  <ButtonGroup>
+                    <Button variant={modsInclude.includes("AC") ? "secondary" : "outline"} value="AC" onClick={handleModIncludeChange}>AC</Button>
+                    <Button variant={modsInclude.includes("BL") ? "secondary" : "outline"} value="BL" onClick={handleModIncludeChange}>BL</Button>
+                    <Button variant={modsInclude.includes("DT") ? "secondary" : "outline"} value="DT" onClick={handleModIncludeChange}>DT</Button>
+                    <Button variant={modsInclude.includes("HD") ? "secondary" : "outline"} value="HD" onClick={handleModIncludeChange}>HD</Button>
+                    <Button variant={modsInclude.includes("HR") ? "secondary" : "outline"} value="HR" onClick={handleModIncludeChange}>HR</Button>
+                    <Button variant={modsInclude.includes("NC") ? "secondary" : "outline"} value="NC" onClick={handleModIncludeChange}>NC</Button>
+                    <Button variant={modsInclude.includes("PF") ? "secondary" : "outline"} value="PF" onClick={handleModIncludeChange}>PF</Button>
+                    <Button variant={modsInclude.includes("SD") ? "secondary" : "outline"} value="SD" onClick={handleModIncludeChange}>SD</Button>
+                    <Button variant={modsInclude.includes("ST") ? "secondary" : "outline"} value="ST" onClick={handleModIncludeChange}>ST</Button>
+                    <Button variant={modsInclude.includes("TC") ? "secondary" : "outline"} value="TC" onClick={handleModIncludeChange}>TC</Button>
+                  </ButtonGroup>
+                  <ButtonGroup>
+                    <Button variant={modsInclude.includes("AL") ? "secondary" : "outline"} value="AL" onClick={handleModIncludeChange}>AL</Button>
+                    <Button variant={modsInclude.includes("CL") ? "secondary" : "outline"} value="CL" onClick={handleModIncludeChange}>CL</Button>
+                    <Button variant={modsInclude.includes("DA") ? "secondary" : "outline"} value="DA" onClick={handleModIncludeChange}>DA</Button>
+                    <Button variant={modsInclude.includes("MR") ? "secondary" : "outline"} value="MR" onClick={handleModIncludeChange}>MR</Button>
+                    <Button variant={modsInclude.includes("RD") ? "secondary" : "outline"} value="RD" onClick={handleModIncludeChange}>RD</Button>
+                    <Button variant={modsInclude.includes("SG") ? "secondary" : "outline"} value="SG" onClick={handleModIncludeChange}>SG</Button>
+                    <Button variant={modsInclude.includes("TP") ? "secondary" : "outline"} value="TP" onClick={handleModIncludeChange}>TP</Button>
+                  </ButtonGroup>
+                  <ButtonGroup>
+                    <Button variant={modsInclude.includes("AP") ? "secondary" : "outline"} value="AP" onClick={handleModIncludeChange}>AP</Button>
+                    <Button variant={modsInclude.includes("RX") ? "secondary" : "outline"} value="RX" onClick={handleModIncludeChange}>RX</Button>
+                    <Button variant={modsInclude.includes("SO") ? "secondary" : "outline"} value="SO" onClick={handleModIncludeChange}>SO</Button>
+                  </ButtonGroup>
+                  <ButtonGroup>
+                    fun mods
+                  </ButtonGroup>
+            </CollapsibleContent>
+          </CardContent>
+        </Collapsible>
       </Card>
-      <Card>
-        <CardHeader>Mods (exclude)</CardHeader>
+      <Card className="w-full max-w-lg">
+        <Collapsible>
+        <CollapsibleTrigger className="w-full"><CardHeader>Mods (exclude)</CardHeader></CollapsibleTrigger>
         <CardContent>
+            <CollapsibleContent>
           <ButtonGroup>
             <Button variant={modsExclude.includes("DC") ? "secondary" : "outline"} value="DC" onClick={handleModExcludeChange}>DC</Button>
             <Button variant={modsExclude.includes("EZ") ? "secondary" : "outline"} value="EZ" onClick={handleModExcludeChange}>EZ</Button>
@@ -213,9 +251,37 @@ export default function Home() {
           <ButtonGroup>
             fun mods
           </ButtonGroup>
+          </CollapsibleContent>
         </CardContent>
+        </Collapsible>
       </Card>
-      <Graphs query={query}/>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            data-empty={!date}
+            className="w-[212px] justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+          >
+            {date ? format(date, "PPP") : <span>Pick a date</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            defaultMonth={date}
+          />
+        </PopoverContent>
+      </Popover>
+      </div>
+      <FieldGroup className="mx-auto">
+        <Field orientation="horizontal">
+          <Checkbox checked={showUnfiltered} onCheckedChange={setShowUnfiltered} id="show-unfiltered"/>
+          <FieldLabel htmlFor="show-unfiltered">Show unfiltered graph</FieldLabel>
+        </Field>
+      </FieldGroup>
+      <Graphs query={query} showUnfiltered={showUnfiltered}/>
     </>
   );
 }
