@@ -16,7 +16,7 @@ public class ApiController(DatabaseContext databaseContext)
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] int? rulesetId, [FromQuery] string[]? modsInclude, [FromQuery] string[]? modsExclude, [FromQuery] bool? hasSettings, [FromQuery] DateTime? hourlyDate)
     {
-        var query = databaseContext.Scores.OrderBy(x => x.Date).AsNoTracking();
+        var query = databaseContext.Scores.AsNoTracking();
 
         hourlyDate ??= DateTime.UtcNow.AddHours(-1);
         var unfiltered = await GetStats(query, hourlyDate.Value);
@@ -62,11 +62,14 @@ public class ApiController(DatabaseContext databaseContext)
     {
         var countByMonth = await query
             .GroupBy(s => new { s.Date.Year, s.Date.Month })
+            .OrderBy(x => x.Key.Year)
+            .ThenBy(x => x.Key.Month)
             .Select(g => new MonthlyCount(new DateTime(g.Key.Year, g.Key.Month, 1), g.Count()))
             .ToListAsync();
 
         var countByDay = await query
             .GroupBy(s => s.Date.Date)
+            .OrderBy(x => x.Key.Date)
             .Select(g => new DailyCount(g.Key, g.Count()))
             .ToListAsync();
 
