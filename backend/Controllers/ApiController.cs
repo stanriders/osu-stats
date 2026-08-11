@@ -1,6 +1,8 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using osuStats.Database;
 using osuStats.OsuApi.Models;
 using Score = osuStats.Database.Models.Score;
@@ -10,7 +12,7 @@ namespace osuStats.Controllers;
 [ApiController]
 [Route("[controller]")]
 //[EnableRateLimiting("token")]
-public class ApiController(DatabaseContext databaseContext)
+public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
     : ControllerBase
 {
     [HttpGet]
@@ -19,7 +21,14 @@ public class ApiController(DatabaseContext databaseContext)
         var query = databaseContext.Scores.AsNoTracking();
 
         hourlyDate ??= DateTime.UtcNow.AddHours(-1);
-        var unfiltered = await GetStats(query, hourlyDate.Value);
+        hourlyDate = new DateTime(hourlyDate.Value.Year, hourlyDate.Value.Month, hourlyDate.Value.Day, hourlyDate.Value.Hour, 0, 0, hourlyDate.Value.Kind);
+
+        var key = $"unfiltered_{hourlyDate.Value.ToString(CultureInfo.InvariantCulture)}";
+        if (!cache.TryGetValue(key, out var unfiltered))
+        {
+            unfiltered = await GetStats(query, hourlyDate.Value);
+            cache.Set(key, unfiltered, TimeSpan.FromMinutes(1));
+        }
 
         bool anyFiltersEnabled = rulesetId != null || modsInclude is { Length: > 0 } || modsExclude is { Length: > 0 } || hasSettings != null;
 
