@@ -3,7 +3,7 @@ using osuStats.OsuApi.Models;
 
 namespace osuStats.Database.Models;
 
-public class Score
+public record Score
 {
     [Key]
     public required long Id { get; set; }
