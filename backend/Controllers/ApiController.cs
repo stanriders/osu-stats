@@ -60,18 +60,18 @@ public class ApiController(DatabaseContext databaseContext)
 
     private async Task<Stats> GetStats(IQueryable<Score> query, DateTime hourlyDate)
     {
-        var countByMonth = await query
-            .GroupBy(s => new { s.Date.Year, s.Date.Month })
-            .OrderBy(x => x.Key.Year)
-            .ThenBy(x => x.Key.Month)
-            .Select(g => new MonthlyCount(new DateTime(g.Key.Year, g.Key.Month, 1), g.Count()))
-            .ToListAsync();
-
         var countByDay = await query
             .GroupBy(s => s.Date.Date)
-            .OrderBy(x => x.Key.Date)
+            .OrderBy(x => x.Key)
             .Select(g => new DailyCount(g.Key, g.Count()))
             .ToListAsync();
+
+        var countByMonth = countByDay
+            .GroupBy(x => new { x.Date.Year, x.Date.Month })
+            .OrderBy(x => x.Key.Year)
+            .ThenBy(x => x.Key.Month)
+            .Select(g => new MonthlyCount(new DateTime(g.Key.Year, g.Key.Month, 1), g.Sum(x => x.Count)))
+            .ToList();
 
         var countByHour = await query
             .Where(x => x.Date >= hourlyDate.AddDays(-1))
@@ -82,18 +82,34 @@ public class ApiController(DatabaseContext databaseContext)
             .Select(g => new HourlyCount(g.Key.Hour, g.Count()))
             .ToListAsync();
 
-        var totalCount = await query.CountAsync();
-        var totalPerfectCombo = await query.Where(x => x.IsPerfectCombo).CountAsync();
-        var totalHasReplay = await query.Where(x => x.HasReplay).CountAsync();
-        var totalSS = await query.Where(x => x.Grade == Grade.X || x.Grade == Grade.XH).CountAsync();
-        var totalS = await query.Where(x => x.Grade == Grade.S || x.Grade == Grade.SH).CountAsync();
-        var totalA = await query.Where(x => x.Grade == Grade.A).CountAsync();
-        var averageAccuracy = await query.AverageAsync(x => x.Accuracy);
-        var averageCombo = await query.AverageAsync(x => x.Combo);
-        var averagePp = await query.Where(x => x.Pp != null).AverageAsync(x => x.Pp);
+        var aggregate = await query
+            .GroupBy(_ => 1) // this forces efcore to do the whole aggregate as one query
+            .Select(g => new
+            {
+                TotalCount = g.Count(),
+                TotalPerfectCombo = g.Count(x => x.IsPerfectCombo),
+                TotalHasReplay = g.Count(x => x.HasReplay),
+                TotalSS = g.Count(x => x.Grade == Grade.X || x.Grade == Grade.XH),
+                TotalS = g.Count(x => x.Grade == Grade.S || x.Grade == Grade.SH),
+                TotalA = g.Count(x => x.Grade == Grade.A),
+                AverageAccuracy = g.Average(x => x.Accuracy),
+                AverageCombo = g.Average(x => x.Combo),
+                AveragePp = g.Where(x => x.Pp != null).Select(x => x.Pp).Average()
+            })
+            .SingleOrDefaultAsync();
 
-        return new Stats(totalCount, totalPerfectCombo, totalHasReplay, totalSS, totalS, totalA, averageAccuracy,
-            averageCombo, averagePp, countByMonth, countByDay, countByHour);
+        return new Stats(aggregate?.TotalCount ?? 0, 
+            aggregate?.TotalPerfectCombo ?? 0,
+            aggregate?.TotalHasReplay ?? 0,
+            aggregate?.TotalSS ?? 0,
+            aggregate?.TotalS ?? 0,
+            aggregate?.TotalA ?? 0,
+            aggregate?.AverageAccuracy ?? 0,
+            aggregate?.AverageCombo ?? 0,
+            aggregate?.AveragePp, 
+            countByMonth, 
+            countByDay, 
+            countByHour);
     }
 
     private record Stats(
