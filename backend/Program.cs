@@ -95,6 +95,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetService<DatabaseContext>();
+    context?.Database.SetCommandTimeout((int)TimeSpan.FromMinutes(10).TotalSeconds);
     context?.Database.Migrate();
 }
 
