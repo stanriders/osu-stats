@@ -15,6 +15,9 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<Score>().HasIndex(x => x.Pp);
         modelBuilder.Entity<Score>().HasIndex(x => x.Mode);
         modelBuilder.Entity<Score>().HasIndex(x => x.Date);
+        modelBuilder.Entity<Score>().HasIndex(x => x.Grade);
+        modelBuilder.Entity<Score>().HasIndex(x => x.IsPerfectCombo);
+        modelBuilder.Entity<Score>().HasIndex(x => x.HasReplay);
 
         modelBuilder.Entity<Score>()
             .Property(x => x.Mods)
