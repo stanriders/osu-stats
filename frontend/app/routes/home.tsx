@@ -78,15 +78,15 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
   return <div className='flex flex-wrap'>
         <Card className="w-fit">
           <CardContent>
-            <p>Total scores: {data.filtered?.totalCount}</p>
-            <p>Scores with replays: {data.filtered?.totalHasReplay}</p>
-            <p>Scores with perfect combo: {data.filtered?.totalPerfectCombo}</p>
-            <p>SS: {data.filtered?.totalSS}</p>
-            <p>S: {data.filtered?.totalS}</p>
-            <p>A: {data.filtered?.totalA}</p>
-            <p>Average accuracy: {data.filtered?.averageAccuracy * 100}</p>
-            <p>Average combo: {data.filtered?.averageCombo}</p>
-            <p>Average pp: {data.filtered?.averagePp}</p>
+            <p>Total scores: {data.filtered?.totalCount ?? data.unfiltered?.totalCount}</p>
+            <p>Scores with replays: {data.filtered?.totalHasReplay ?? data.unfiltered?.totalHasReplay}</p>
+            <p>Scores with perfect combo: {data.filtered?.totalPerfectCombo ?? data.unfiltered?.totalPerfectCombo}</p>
+            <p>SS: {data.filtered?.totalSS ?? data.unfiltered?.totalSS}</p>
+            <p>S: {data.filtered?.totalS ?? data.unfiltered?.totalS}</p>
+            <p>A: {data.filtered?.totalA ?? data.unfiltered?.totalA}</p>
+            <p>Average accuracy: {(data.filtered?.averageAccuracy ?? data.unfiltered?.averageAccuracy) * 100}</p>
+            <p>Average combo: {data.filtered?.averageCombo ?? data.unfiltered?.averageCombo}</p>
+            <p>Average pp: {data.filtered?.averagePp ?? data.unfiltered?.averagePp}</p>
           </CardContent>
         </Card>
         <Card className="w-fit">
