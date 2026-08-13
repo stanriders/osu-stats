@@ -28,7 +28,7 @@ const chartConfig = {} satisfies ChartConfig
 const fetcher = (...args : any[]) => fetch(...args).then(res => res.json());
 
 function Hourly({query, showUnfiltered, hourlyDate} : { query: string; showUnfiltered: boolean, hourlyDate: Date }) {
-  const { data, error, isLoading } = useSWR(`https://localhost:7093/api/hourly?hourlyDate=${hourlyDate.toISOString()}&${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
+  const { data, error, isLoading } = useSWR(`https://osustats.stanr.info/api/hourly?hourlyDate=${hourlyDate.toISOString()}&${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
 
   if (error) return <div>failed to load</div>
   if (isLoading) return <div><Spinner /></div>
@@ -58,7 +58,7 @@ function Hourly({query, showUnfiltered, hourlyDate} : { query: string; showUnfil
 }
 
 function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boolean }) {
-  const { data, error, isLoading } = useSWR(`https://localhost:7093/api?${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
+  const { data, error, isLoading } = useSWR(`https://osustats.stanr.info/api?${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
 
   if (error) return <div>failed to load</div>
   if (isLoading) return <div><Spinner /></div>
