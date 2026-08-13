@@ -92,32 +92,41 @@ public class ScoresService(
                     };
                 }
 
+                var ids = scoreResponse.Scores
+                    .Select(x => x.Id)
+                    .ToList();
+
+                var existingIds = await context.Scores
+                    .Where(x => ids.Contains(x.Id))
+                    .Select(x => x.Id)
+                    .ToHashSetAsync(stoppingToken);
+
                 foreach (var score in scoreResponse.Scores)
                 {
-                    if (!await context.Scores.AnyAsync(x => x.Id == score.Id, cancellationToken: stoppingToken))
+                    if (existingIds.Contains(score.Id))
+                        continue;
+
+                    context.Scores.Add(new Score
                     {
-                        context.Scores.Add(new Score
+                        Id = score.Id,
+                        UserId = score.UserId,
+                        BeatmapId = score.BeatmapId,
+                        Grade = score.Grade,
+                        Accuracy = score.Accuracy,
+                        Combo = score.Combo,
+                        Mods = score.Mods.Select(x => new Mod
                         {
-                            Id = score.Id,
-                            UserId = score.UserId,
-                            BeatmapId = score.BeatmapId,
-                            Grade = score.Grade,
-                            Accuracy = score.Accuracy,
-                            Combo = score.Combo,
-                            Mods = score.Mods.Select(x => new Mod
-                            {
-                                Acronym = x.Acronym,
-                                Settings = x.Settings?.ToDictionary(s => s.Key, s => ConvertJsonElement(s.Value)) ??
-                                           new Dictionary<string, string>()
-                            }).ToList(),
-                            Date = score.Date,
-                            TotalScore = score.TotalScore,
-                            Pp = score.Pp,
-                            Mode = score.Mode,
-                            HasReplay = score.HasReplay,
-                            IsPerfectCombo = score.IsPerfectCombo
-                        });
-                    }
+                            Acronym = x.Acronym,
+                            Settings = x.Settings?.ToDictionary(s => s.Key, s => ConvertJsonElement(s.Value)) ??
+                                       new Dictionary<string, string>()
+                        }).ToList(),
+                        Date = score.Date,
+                        TotalScore = score.TotalScore,
+                        Pp = score.Pp,
+                        Mode = score.Mode,
+                        HasReplay = score.HasReplay,
+                        IsPerfectCombo = score.IsPerfectCombo
+                    });
                 }
 
                 await context.SaveChangesAsync(stoppingToken);
