@@ -27,8 +27,38 @@ const chartConfig = {} satisfies ChartConfig
 
 const fetcher = (...args : any[]) => fetch(...args).then(res => res.json());
 
+function Hourly({query, showUnfiltered, hourlyDate} : { query: string; showUnfiltered: boolean, hourlyDate: Date }) {
+  const { data, error, isLoading } = useSWR(`https://localhost:7093/api/hourly?hourlyDate=${hourlyDate.toISOString()}&${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
+
+  if (error) return <div>failed to load</div>
+  if (isLoading) return <div><Spinner /></div>
+
+  const countByHour = data.unfiltered.map((item, index) => ({
+    hour: item.hour,
+    unfiltered: item.count,
+    filtered: data.filtered?.length > 0 ? data.filtered[index]?.count : null
+  }));
+    
+  return <div className='flex flex-wrap'>
+        <Card className="w-fit">
+          <CardHeader>Hourly</CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="w-3xl h-64">
+              <AreaChart responsive data={countByHour}>
+                {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
+                {data.filtered ? <Area dataKey="filtered" /> : <></>}
+                <XAxis dataKey="hour" />
+                <YAxis />
+                <ChartTooltip content={<ChartTooltipContent />} />
+              </AreaChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>;
+}
+
 function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boolean }) {
-  const { data, error, isLoading } = useSWR(`https://osustats.stanr.info/api?${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
+  const { data, error, isLoading } = useSWR(`https://localhost:7093/api?${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
 
   if (error) return <div>failed to load</div>
   if (isLoading) return <div><Spinner /></div>
@@ -45,12 +75,6 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
     filtered: data.filtered?.countByDay[index]?.count
   }));
 
-  const countByHour = data.unfiltered.countByHour.map((item, index) => ({
-    hour: item.hour,
-    unfiltered: item.count,
-    filtered: data.filtered?.countByHour[index]?.count
-  }));
-    
   return <div className='flex flex-wrap'>
         <Card className="w-fit">
           <CardContent>
@@ -93,20 +117,6 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card className="w-fit">
-          <CardHeader>Hourly</CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="w-3xl h-64">
-              <AreaChart responsive data={countByHour}>
-                {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
-                {data.filtered ? <Area dataKey="filtered" /> : <></>}
-                <XAxis dataKey="hour" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </AreaChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
       </div>;
 }
 
@@ -128,8 +138,6 @@ export default function Home() {
   if (modsExclude.length > 0) {
     query += modsExclude.map(x => `modsExclude=${x}&`).join("");
   }
-
-  query += `hourlyDate=${date.toISOString()}`
 
   const handleRulesetChange = (e: any) => {
     if (e.target.value == ruleset) {
@@ -255,6 +263,17 @@ export default function Home() {
         </CardContent>
         </Collapsible>
       </Card>
+      </div>
+      <FieldGroup className="mx-auto">
+        <Field orientation="horizontal">
+          <Checkbox checked={showUnfiltered} onCheckedChange={setShowUnfiltered} id="show-unfiltered"/>
+          <FieldLabel htmlFor="show-unfiltered">Show unfiltered graph</FieldLabel>
+        </Field>
+      </FieldGroup>
+      <Graphs query={query} showUnfiltered={showUnfiltered}/>
+
+      <div className="flex">
+      <Card className="min-w-fit">
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -274,14 +293,9 @@ export default function Home() {
           />
         </PopoverContent>
       </Popover>
+      </Card>
       </div>
-      <FieldGroup className="mx-auto">
-        <Field orientation="horizontal">
-          <Checkbox checked={showUnfiltered} onCheckedChange={setShowUnfiltered} id="show-unfiltered"/>
-          <FieldLabel htmlFor="show-unfiltered">Show unfiltered graph</FieldLabel>
-        </Field>
-      </FieldGroup>
-      <Graphs query={query} showUnfiltered={showUnfiltered}/>
+      <Hourly query={query} showUnfiltered={showUnfiltered} hourlyDate={date}/>
     </>
   );
 }
