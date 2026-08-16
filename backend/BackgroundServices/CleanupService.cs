@@ -54,7 +54,7 @@ public class CleanupService(IServiceScopeFactory serviceScopeFactory, ILogger<Cl
 
                 // TODO: remove this after complete transition to partitions
                 var deleted = await context.Scores.AsNoTracking()
-                    .Where(x => x.Date < outdated.ToDateTime(new TimeOnly()))
+                    .Where(x => x.Date < outdated.ToDateTime(new TimeOnly(), DateTimeKind.Utc))
                     .ExecuteDeleteAsync(cancellationToken: stoppingToken);
 
                 logger.LogInformation("Deleted {Count} scores older than {Date}", deleted, outdated);
