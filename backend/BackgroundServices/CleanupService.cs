@@ -21,10 +21,40 @@ public class CleanupService(IServiceScopeFactory serviceScopeFactory, ILogger<Cl
                     return;
                 }
 
-                var outdated = DateTime.UtcNow.AddMonths(-3);
+                var today = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1); // TODO: this is today+1 to make it so we can migrate to partitions safely
 
+                for (var i = 0; i <= 7; i++)
+                {
+                    var date = today.AddDays(i);
+                    var nextDate = date.AddDays(1);
+
+                    var partitionName = $"Scores_{date:yyyy_MM_dd}";
+
+                    await context.Database.ExecuteSqlRawAsync($"""
+                                                               CREATE TABLE IF NOT EXISTS "{partitionName}"
+                                                               PARTITION OF "Scores"
+                                                               FOR VALUES FROM ('{date:yyyy-MM-dd}')
+                                                               TO ('{nextDate:yyyy-MM-dd}');
+                                                               """, stoppingToken);
+                }
+
+                logger.LogInformation("Added score partitions from {Start} to {End}", today, today.AddDays(7));
+
+                var outdated = today.AddMonths(-3);
+
+                for (var i = -7; i <= 0; i++)
+                {
+                    var date = outdated.AddDays(i);
+                    var partitionName = $"Scores_{date:yyyy_MM_dd}";
+
+                    await context.Database.ExecuteSqlRawAsync($"DROP TABLE IF EXISTS \"{partitionName}\";", stoppingToken);
+                }
+
+                logger.LogInformation("Deleted score partitions older than {Date}", outdated);
+
+                // TODO: remove this after complete transition to partitions
                 var deleted = await context.Scores.AsNoTracking()
-                    .Where(x => x.Date < outdated)
+                    .Where(x => x.Date < outdated.ToDateTime(new TimeOnly()))
                     .ExecuteDeleteAsync(cancellationToken: stoppingToken);
 
                 logger.LogInformation("Deleted {Count} scores older than {Date}", deleted, outdated);

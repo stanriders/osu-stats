@@ -12,9 +12,14 @@ public class DatabaseContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Score>().ToTable("Scores");
+
         modelBuilder.Entity<Score>().HasIndex(x => x.Pp);
         modelBuilder.Entity<Score>().HasIndex(x => x.Mode);
         modelBuilder.Entity<Score>().HasIndex(x => x.Grade);
+
+        modelBuilder.Entity<Score>()
+            .HasKey(x => new { x.Id, x.Date });
 
         modelBuilder.Entity<Score>()
             .HasIndex(x => x.Date)

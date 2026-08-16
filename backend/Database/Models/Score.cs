@@ -1,11 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-using osuStats.OsuApi.Models;
+﻿using osuStats.OsuApi.Models;
 
 namespace osuStats.Database.Models;
 
 public record Score
 {
-    [Key]
     public required long Id { get; set; }
 
     public required int UserId { get; set; }
