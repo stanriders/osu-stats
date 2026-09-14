@@ -21,11 +21,21 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
     {
         var query = databaseContext.Scores.AsNoTracking();
 
-        hourlyDate ??= DateTime.UtcNow.AddHours(-1);
+        if (hourlyDate != null)
+        {
+            // make sure we take all 24 hours if a date is set
+            hourlyDate = hourlyDate.Value.AddHours(1);
+        }
+        else
+        {
+            // ignore current hour if we're querying fresh data
+            hourlyDate = DateTime.UtcNow.AddHours(-1);
+        }
+
         hourlyDate = new DateTime(hourlyDate.Value.Year, hourlyDate.Value.Month, hourlyDate.Value.Day, hourlyDate.Value.Hour, 0, 0, hourlyDate.Value.Kind);
 
         query = query.Where(x => x.Date >= hourlyDate.Value.AddDays(-1))
-            .Where(x => x.Date <= hourlyDate.Value);
+            .Where(x => x.Date < hourlyDate.Value);
 
         var key = $"unfiltered_hourly_{hourlyDate.Value.ToString(CultureInfo.InvariantCulture)}";
         if (!cache.TryGetValue(key, out var unfiltered))
