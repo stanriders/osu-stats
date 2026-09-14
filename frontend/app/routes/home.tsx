@@ -15,6 +15,7 @@ import { Calendar } from "~/components/ui/calendar";
 import { format } from "date-fns"
 import { Checkbox } from "~/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
+import { ApiBase } from "~/lib/api";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -27,19 +28,53 @@ const chartConfig = {} satisfies ChartConfig
 
 const fetcher = (...args : any[]) => fetch(...args).then(res => res.json());
 
-function Hourly({query, showUnfiltered, hourlyDate} : { query: string; showUnfiltered: boolean, hourlyDate: Date }) {
-  const { data, error, isLoading } = useSWR(`https://osustats.stanr.info/api/hourly?hourlyDate=${hourlyDate.toISOString()}&${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
+function Hourly({query, showUnfiltered} : { query: string; showUnfiltered: boolean }) {
+  const [date, setDate] = useState<Date>(new Date);
+  const { data, error, isLoading } = useSWR(`${ApiBase}/hourly?hourlyDate=${date.toISOString()}&${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
 
   if (error) return <div>failed to load</div>
   if (isLoading) return <div><Spinner /></div>
 
-  const countByHour = data.unfiltered.map((item, index) => ({
+  const countByHour = data.unfiltered.countByHour.map((item, index) => ({
     hour: item.hour,
     unfiltered: item.count,
-    filtered: data.filtered?.length > 0 ? data.filtered[index]?.count : null
+    filtered: data.filtered?.countByHour.length > 0 ? data.filtered.countByHour[index]?.count : null
   }));
     
   return <div className='flex flex-wrap'>
+        <Card className="w-fit">
+          <CardHeader>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            data-empty={!date}
+            className="w-[212px] justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+          >
+            {date ? format(date, "PPP") : <span>Pick a date</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            defaultMonth={date}
+          />
+        </PopoverContent>
+      </Popover></CardHeader>
+              <CardContent>
+                <p>Total scores: {data.filtered?.totalCount ?? data.unfiltered?.totalCount}</p>
+                <p>Scores with replays: {data.filtered?.totalHasReplay ?? data.unfiltered?.totalHasReplay}</p>
+                <p>Scores with perfect combo: {data.filtered?.totalPerfectCombo ?? data.unfiltered?.totalPerfectCombo}</p>
+                <p>SS: {data.filtered?.totalSS ?? data.unfiltered?.totalSS}</p>
+                <p>S: {data.filtered?.totalS ?? data.unfiltered?.totalS}</p>
+                <p>A: {data.filtered?.totalA ?? data.unfiltered?.totalA}</p>
+                <p>Average accuracy: {(data.filtered?.averageAccuracy ?? data.unfiltered?.averageAccuracy) * 100}</p>
+                <p>Average combo: {data.filtered?.averageCombo ?? data.unfiltered?.averageCombo}</p>
+                <p>Average pp: {data.filtered?.averagePp ?? data.unfiltered?.averagePp}</p>
+              </CardContent>
+        </Card>
         <Card className="w-fit">
           <CardHeader>Hourly</CardHeader>
           <CardContent>
@@ -58,7 +93,7 @@ function Hourly({query, showUnfiltered, hourlyDate} : { query: string; showUnfil
 }
 
 function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boolean }) {
-  const { data, error, isLoading } = useSWR(`https://osustats.stanr.info/api?${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
+  const { data, error, isLoading } = useSWR(`${ApiBase}?${query}`, fetcher, { refreshInterval: 5000, revalidateIfStale: false })
 
   if (error) return <div>failed to load</div>
   if (isLoading) return <div><Spinner /></div>
@@ -76,19 +111,6 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
   }));
 
   return <div className='flex flex-wrap'>
-        <Card className="w-fit">
-          <CardContent>
-            <p>Total scores: {data.filtered?.totalCount ?? data.unfiltered?.totalCount}</p>
-            <p>Scores with replays: {data.filtered?.totalHasReplay ?? data.unfiltered?.totalHasReplay}</p>
-            <p>Scores with perfect combo: {data.filtered?.totalPerfectCombo ?? data.unfiltered?.totalPerfectCombo}</p>
-            <p>SS: {data.filtered?.totalSS ?? data.unfiltered?.totalSS}</p>
-            <p>S: {data.filtered?.totalS ?? data.unfiltered?.totalS}</p>
-            <p>A: {data.filtered?.totalA ?? data.unfiltered?.totalA}</p>
-            <p>Average accuracy: {(data.filtered?.averageAccuracy ?? data.unfiltered?.averageAccuracy) * 100}</p>
-            <p>Average combo: {data.filtered?.averageCombo ?? data.unfiltered?.averageCombo}</p>
-            <p>Average pp: {data.filtered?.averagePp ?? data.unfiltered?.averagePp}</p>
-          </CardContent>
-        </Card>
         <Card className="w-fit">
           <CardHeader>Monthly</CardHeader>
           <CardContent>
@@ -124,7 +146,6 @@ export default function Home() {
   const [ruleset, setRuleset] = useState<number | null>(null);
   const [modsInclude, setModsInclude] = useState<Array<string>>([]);
   const [modsExclude, setModsExclude] = useState<Array<string>>([]);
-  const [date, setDate] = useState<Date>(new Date);
   const [showUnfiltered, setShowUnfiltered] = useState<boolean>(true);
 
   let query = "";
@@ -271,31 +292,7 @@ export default function Home() {
         </Field>
       </FieldGroup>
       <Graphs query={query} showUnfiltered={showUnfiltered}/>
-
-      <div className="flex">
-      <Card className="min-w-fit">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            data-empty={!date}
-            className="w-[212px] justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
-          >
-            {date ? format(date, "PPP") : <span>Pick a date</span>}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            defaultMonth={date}
-          />
-        </PopoverContent>
-      </Popover>
-      </Card>
-      </div>
-      <Hourly query={query} showUnfiltered={showUnfiltered} hourlyDate={date}/>
+      <Hourly query={query} showUnfiltered={showUnfiltered}/>
     </>
   );
 }

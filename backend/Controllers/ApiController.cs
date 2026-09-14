@@ -120,9 +120,9 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
         });
     }
 
-    private async Task<List<HourlyCount>> GetHourlyStats(IQueryable<Score> query, DateTime hourlyDate)
+    private async Task<HourlyStats> GetHourlyStats(IQueryable<Score> query, DateTime hourlyDate)
     {
-        return await query
+        var countByHour = await query
             .Where(x => x.Date >= hourlyDate.AddDays(-1))
             .Where(x => x.Date <= hourlyDate)
             .GroupBy(s => new { s.Date.Date, s.Date.Hour })
@@ -130,22 +130,6 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
             .ThenBy(x => x.Key.Hour)
             .Select(g => new HourlyCount(g.Key.Hour, g.Count()))
             .ToListAsync();
-    }
-
-    private async Task<Stats> GetStats(IQueryable<Score> query)
-    {
-        var countByDay = await query
-            .GroupBy(s => s.Date.Date)
-            .OrderBy(x => x.Key)
-            .Select(g => new DailyCount(g.Key, g.Count()))
-            .ToListAsync();
-
-        var countByMonth = countByDay
-            .GroupBy(x => new { x.Date.Year, x.Date.Month })
-            .OrderBy(x => x.Key.Year)
-            .ThenBy(x => x.Key.Month)
-            .Select(g => new MonthlyCount(new DateTime(g.Key.Year, g.Key.Month, 1), g.Sum(x => x.Count)))
-            .ToList();
 
         var aggregate = await query
             .GroupBy(_ => 1) // this forces efcore to do the whole aggregate as one query
@@ -163,7 +147,7 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
             })
             .SingleOrDefaultAsync();
 
-        return new Stats(aggregate?.TotalCount ?? 0, 
+        return new HourlyStats(aggregate?.TotalCount ?? 0,
             aggregate?.TotalPerfectCombo ?? 0,
             aggregate?.TotalHasReplay ?? 0,
             aggregate?.TotalSS ?? 0,
@@ -171,12 +155,29 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
             aggregate?.TotalA ?? 0,
             aggregate?.AverageAccuracy ?? 0,
             aggregate?.AverageCombo ?? 0,
-            aggregate?.AveragePp, 
-            countByMonth, 
-            countByDay);
+            aggregate?.AveragePp,
+            countByHour);
     }
 
-    private record Stats(
+    private async Task<Stats> GetStats(IQueryable<Score> query)
+    {
+        var countByDay = await query
+            .GroupBy(s => s.Date.Date)
+            .OrderBy(x => x.Key)
+            .Select(g => new DailyCount(g.Key, g.Count()))
+            .ToListAsync();
+
+        var countByMonth = countByDay
+            .GroupBy(x => new { x.Date.Year, x.Date.Month })
+            .OrderBy(x => x.Key.Year)
+            .ThenBy(x => x.Key.Month)
+            .Select(g => new MonthlyCount(new DateTime(g.Key.Year, g.Key.Month, 1), g.Sum(x => x.Count)))
+            .ToList();
+
+        return new Stats(countByMonth, countByDay);
+    }
+
+    private record HourlyStats(
         int TotalCount,
         int TotalPerfectCombo,
         int TotalHasReplay,
@@ -186,6 +187,9 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
         double AverageAccuracy,
         double AverageCombo,
         double? AveragePp,
+        List<HourlyCount> CountByHour);
+
+    private record Stats(
         List<MonthlyCount> CountByMonth,
         List<DailyCount> CountByDay);
 
