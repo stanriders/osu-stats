@@ -41,7 +41,7 @@ function Hourly({query, showUnfiltered} : { query: string; showUnfiltered: boole
     filtered: data.filtered?.countByHour.length > 0 ? data.filtered.countByHour[index]?.count : null
   }));
     
-  const hour = new Intl.DateTimeFormat(undefined, {
+  const hourFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
     timeZone: 'UTC',
   });
@@ -90,11 +90,11 @@ function Hourly({query, showUnfiltered} : { query: string; showUnfiltered: boole
           <CardContent>
             <ChartContainer config={chartConfig} className="w-3xl h-64">
               <AreaChart responsive data={countByHour} margin={{ top: 10, right: 30, bottom: 10, left: 10 }} style={{ overflow: 'visible' }}>
-                {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
-                {data.filtered ? <Area dataKey="filtered" /> : <></>}
-                <XAxis dataKey="hour" tickFormatter={(v) => hour.format(new Date(v))} />
+                {showUnfiltered ? <Line dataKey="unfiltered" name="Total" /> : <></>}
+                {data.filtered ? <Area dataKey="filtered" name="Filtered" /> : <></>}
+                <XAxis dataKey="hour" tickFormatter={(v) => hourFormatter.format(new Date(v))} />
                 <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartTooltip content={<ChartTooltipContent />} labelFormatter={(v) => hourFormatter.format(new Date(v))}/>
               </AreaChart>
             </ChartContainer>
           </CardContent>
@@ -142,11 +142,11 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
           <CardContent>
             <ChartContainer config={chartConfig} className="w-3xl h-64">
               <AreaChart responsive data={countByMonth} margin={{ top: 10, right: 30, bottom: 10, left: 10 }} style={{ overflow: 'visible' }}>
-                {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
-                {data.filtered ? <Area dataKey="filtered" /> : <></>}
+                {showUnfiltered ? <Line dataKey="unfiltered" name="Total" /> : <></>}
+                {data.filtered ? <Area dataKey="filtered" name="Filtered" /> : <></>}
                 <XAxis dataKey="date" tickFormatter={(v) => monthFormatter.format(new Date(v))} textAnchor="middle"/>
                 <YAxis tickFormatter={compactNumberFormatter.format} />
-                <ChartTooltip content={<ChartTooltipContent />}/>
+                <ChartTooltip content={<ChartTooltipContent />} labelFormatter={(v) => monthFormatter.format(new Date(v))}/>
               </AreaChart>
             </ChartContainer>
           </CardContent>
@@ -156,11 +156,11 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
           <CardContent>
             <ChartContainer config={chartConfig} className="w-3xl h-64">
               <AreaChart responsive data={countByDay} margin={{ top: 10, right: 30, bottom: 10, left: 10 }} style={{ overflow: 'visible' }}>
-                {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
-                {data.filtered ? <Area dataKey="filtered" /> : <></>}
+                {showUnfiltered ? <Line dataKey="unfiltered" name="Total" /> : <></>}
+                {data.filtered ? <Area dataKey="filtered" name="Filtered" /> : <></>}
                 <XAxis dataKey="date" tickFormatter={(v) => dayFormatter.format(new Date(v))}/>
                 <YAxis tickFormatter={compactNumberFormatter.format}/>
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartTooltip content={<ChartTooltipContent />} labelFormatter={(v) => dayFormatter.format(new Date(v))}/>
               </AreaChart>
             </ChartContainer>
           </CardContent>
