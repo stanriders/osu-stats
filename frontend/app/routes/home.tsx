@@ -41,10 +41,7 @@ function Hourly({query, showUnfiltered} : { query: string; showUnfiltered: boole
     filtered: data.filtered?.countByHour.length > 0 ? data.filtered.countByHour[index]?.count : null
   }));
     
-  const hourFormatter = new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric',
-    timeZone: 'UTC',
-  });
+  const hourFormatter = new Intl.DateTimeFormat(undefined, { hour: 'numeric' });
 
   const stats = data.filtered ?? data.unfiltered;
   const int = new Intl.NumberFormat(undefined);
@@ -120,21 +117,9 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
     filtered: data.filtered?.countByDay[index]?.count
   }));
 
-  const compactNumberFormatter = new Intl.NumberFormat(undefined, {
-    notation: 'compact',
-    maximumFractionDigits: 2,
-  });
-
-  const dayFormatter = new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-  });
-
-  const monthFormatter = new Intl.DateTimeFormat(undefined, {
-    month: 'long',
-    timeZone: 'UTC',
-  });
+  const compactNumberFormatter = new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 2 });
+  const dayFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' });
+  const monthFormatter = new Intl.DateTimeFormat(undefined, { month: 'long' });
 
   return <div className='flex flex-wrap'>
         <Card className="w-fit">
