@@ -24,10 +24,13 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
         hourlyDate ??= DateTime.UtcNow.AddHours(-1);
         hourlyDate = new DateTime(hourlyDate.Value.Year, hourlyDate.Value.Month, hourlyDate.Value.Day, hourlyDate.Value.Hour, 0, 0, hourlyDate.Value.Kind);
 
+        query = query.Where(x => x.Date >= hourlyDate.Value.AddDays(-1))
+            .Where(x => x.Date <= hourlyDate.Value);
+
         var key = $"unfiltered_hourly_{hourlyDate.Value.ToString(CultureInfo.InvariantCulture)}";
         if (!cache.TryGetValue(key, out var unfiltered))
         {
-            unfiltered = await GetHourlyStats(query, hourlyDate.Value);
+            unfiltered = await GetHourlyStats(query);
             cache.Set(key, unfiltered, TimeSpan.FromMinutes(1));
         }
 
@@ -64,7 +67,7 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
         return Ok(new
         {
             Unfiltered = unfiltered,
-            Filtered = anyFiltersEnabled ? await GetHourlyStats(query, hourlyDate.Value) : null
+            Filtered = anyFiltersEnabled ? await GetHourlyStats(query) : null
         });
     }
 
@@ -120,11 +123,9 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
         });
     }
 
-    private async Task<HourlyStats> GetHourlyStats(IQueryable<Score> query, DateTime hourlyDate)
+    private async Task<HourlyStats> GetHourlyStats(IQueryable<Score> query)
     {
         var countByHour = await query
-            .Where(x => x.Date >= hourlyDate.AddDays(-1))
-            .Where(x => x.Date <= hourlyDate)
             .GroupBy(s => new { s.Date.Date, s.Date.Hour })
             .OrderBy(x => x.Key.Date)
             .ThenBy(x => x.Key.Hour)
