@@ -41,6 +41,16 @@ function Hourly({query, showUnfiltered} : { query: string; showUnfiltered: boole
     filtered: data.filtered?.countByHour.length > 0 ? data.filtered.countByHour[index]?.count : null
   }));
     
+  const hour = new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    timeZone: 'UTC',
+  });
+
+  const stats = data.filtered ?? data.unfiltered;
+  const int = new Intl.NumberFormat(undefined);
+  const dec = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
+  const pct = new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 2 });
+
   return <div className='flex flex-wrap'>
         <Card className="w-fit">
           <CardHeader>
@@ -63,26 +73,26 @@ function Hourly({query, showUnfiltered} : { query: string; showUnfiltered: boole
           />
         </PopoverContent>
       </Popover></CardHeader>
-              <CardContent>
-                <p>Total scores: {data.filtered?.totalCount ?? data.unfiltered?.totalCount}</p>
-                <p>Scores with replays: {data.filtered?.totalHasReplay ?? data.unfiltered?.totalHasReplay}</p>
-                <p>Scores with perfect combo: {data.filtered?.totalPerfectCombo ?? data.unfiltered?.totalPerfectCombo}</p>
-                <p>SS: {data.filtered?.totalSS ?? data.unfiltered?.totalSS}</p>
-                <p>S: {data.filtered?.totalS ?? data.unfiltered?.totalS}</p>
-                <p>A: {data.filtered?.totalA ?? data.unfiltered?.totalA}</p>
-                <p>Average accuracy: {(data.filtered?.averageAccuracy ?? data.unfiltered?.averageAccuracy) * 100}</p>
-                <p>Average combo: {data.filtered?.averageCombo ?? data.unfiltered?.averageCombo}</p>
-                <p>Average pp: {data.filtered?.averagePp ?? data.unfiltered?.averagePp}</p>
-              </CardContent>
+          <CardContent>
+            <p>Total scores: {int.format(stats.totalCount)}</p>
+            <p>Scores with replays: {int.format(stats.totalHasReplay)}</p>
+            <p>Scores with perfect combo: {int.format(stats.totalPerfectCombo)}</p>
+            <p>SS: {int.format(stats.totalSS)}</p>
+            <p>S: {int.format(stats.totalS)}</p>
+            <p>A: {int.format(stats.totalA)}</p>
+            <p>Average accuracy: {pct.format(stats.averageAccuracy)}</p>
+            <p>Average combo: {dec.format(stats.averageCombo)}</p>
+            <p>Average pp: {dec.format(stats.averagePp)}pp</p>
+          </CardContent>
         </Card>
         <Card className="w-fit">
           <CardHeader>Hourly</CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="w-3xl h-64">
-              <AreaChart responsive data={countByHour}>
+              <AreaChart responsive data={countByHour} margin={{ top: 10, right: 30, bottom: 10, left: 10 }} style={{ overflow: 'visible' }}>
                 {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
                 {data.filtered ? <Area dataKey="filtered" /> : <></>}
-                <XAxis dataKey="hour" />
+                <XAxis dataKey="hour" tickFormatter={(v) => hour.format(new Date(v))} />
                 <YAxis />
                 <ChartTooltip content={<ChartTooltipContent />} />
               </AreaChart>
@@ -110,17 +120,33 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
     filtered: data.filtered?.countByDay[index]?.count
   }));
 
+  const compactNumberFormatter = new Intl.NumberFormat(undefined, {
+    notation: 'compact',
+    maximumFractionDigits: 2,
+  });
+
+  const dayFormatter = new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+
+  const monthFormatter = new Intl.DateTimeFormat(undefined, {
+    month: 'long',
+    timeZone: 'UTC',
+  });
+
   return <div className='flex flex-wrap'>
         <Card className="w-fit">
           <CardHeader>Monthly</CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="w-3xl h-64">
-              <AreaChart responsive data={countByMonth}>
+              <AreaChart responsive data={countByMonth} margin={{ top: 10, right: 30, bottom: 10, left: 10 }} style={{ overflow: 'visible' }}>
                 {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
                 {data.filtered ? <Area dataKey="filtered" /> : <></>}
-                <XAxis dataKey="date" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <XAxis dataKey="date" tickFormatter={(v) => monthFormatter.format(new Date(v))} textAnchor="middle"/>
+                <YAxis tickFormatter={compactNumberFormatter.format} />
+                <ChartTooltip content={<ChartTooltipContent />}/>
               </AreaChart>
             </ChartContainer>
           </CardContent>
@@ -129,11 +155,11 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
           <CardHeader>Daily</CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="w-3xl h-64">
-              <AreaChart responsive data={countByDay}>
+              <AreaChart responsive data={countByDay} margin={{ top: 10, right: 30, bottom: 10, left: 10 }} style={{ overflow: 'visible' }}>
                 {showUnfiltered ? <Line dataKey="unfiltered" /> : <></>}
                 {data.filtered ? <Area dataKey="filtered" /> : <></>}
-                <XAxis dataKey="date" />
-                <YAxis />
+                <XAxis dataKey="date" tickFormatter={(v) => dayFormatter.format(new Date(v))}/>
+                <YAxis tickFormatter={compactNumberFormatter.format}/>
                 <ChartTooltip content={<ChartTooltipContent />} />
               </AreaChart>
             </ChartContainer>

@@ -129,7 +129,7 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
             .GroupBy(s => new { s.Date.Date, s.Date.Hour })
             .OrderBy(x => x.Key.Date)
             .ThenBy(x => x.Key.Hour)
-            .Select(g => new HourlyCount(g.Key.Hour, g.Count()))
+            .Select(g => new HourlyCount(g.Key.Date.AddHours(g.Key.Hour), g.Count()))
             .ToListAsync();
 
         var aggregate = await query
@@ -196,5 +196,5 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
 
     private record MonthlyCount(DateTime Date, int Count);
     private record DailyCount(DateTime Date, int Count);
-    private record HourlyCount(int Hour, int Count);
+    private record HourlyCount(DateTime Hour, int Count);
 }
