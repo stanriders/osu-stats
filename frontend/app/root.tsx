@@ -25,18 +25,20 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="w-full h-full">
+    <html lang="en" className="h-full w-full">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <script defer src="https://umami.stanr.info/script.js" data-website-id="f8a4f3fe-13fd-4ecc-90b4-aba002502bc1"></script>
+        <script
+          defer
+          src="https://umami.stanr.info/script.js"
+          data-website-id="f8a4f3fe-13fd-4ecc-90b4-aba002502bc1"
+        ></script>
       </head>
-      <body className="px-8 w-full py-8 bg-background h-full">
-        <main>
-          {children}
-        </main>
+      <body className="h-full w-full bg-background px-8 py-8">
+        <main>{children}</main>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -65,11 +67,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
+    <main className="container mx-auto p-4 pt-16">
       <h1>{message}</h1>
       <p>{details}</p>
       {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
+        <pre className="w-full overflow-x-auto p-4">
           <code>{stack}</code>
         </pre>
       )}

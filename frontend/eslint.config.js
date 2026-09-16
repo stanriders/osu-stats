@@ -1,9 +1,9 @@
-js
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import { defineConfig, globalIgnores } from "eslint/config";
+import eslintConfigPrettier from "eslint-config-prettier/flat";
 
 export default defineConfig([
   globalIgnores(["build", ".react-router"]),
@@ -17,5 +17,9 @@ export default defineConfig([
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
     },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
   },
+  eslintConfigPrettier,
 ]);
