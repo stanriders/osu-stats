@@ -48,29 +48,31 @@ function Hourly({query, showUnfiltered} : { query: string; showUnfiltered: boole
   const dec = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
   const pct = new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 2 });
 
-  return <div className='flex flex-wrap'>
-        <Card className="w-fit">
-          <CardHeader>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            data-empty={!date}
-            className="w-[212px] justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
-          >
-            {date ? format(date, "PPP") : <span>Pick a date</span>}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            defaultMonth={date}
-          />
-        </PopoverContent>
-      </Popover></CardHeader>
-          <CardContent>
+  return (
+  <div className='flex flex-wrap'>
+    <Card className="w-fit">
+      <CardHeader>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              data-empty={!date}
+              className="w-[212px] justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+            >
+              {date ? format(date, "PPP") : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              defaultMonth={date}
+            />
+          </PopoverContent>
+        </Popover>
+      </CardHeader>
+      <CardContent>
             <p>Total scores: {int.format(stats.totalCount)}</p>
             <p>Scores with replays: {int.format(stats.totalHasReplay)}</p>
             <p>Scores with perfect combo: {int.format(stats.totalPerfectCombo)}</p>
@@ -80,23 +82,23 @@ function Hourly({query, showUnfiltered} : { query: string; showUnfiltered: boole
             <p>Average accuracy: {pct.format(stats.averageAccuracy)}</p>
             <p>Average combo: {dec.format(stats.averageCombo)}</p>
             <p>Average pp: {dec.format(stats.averagePp)}pp</p>
-          </CardContent>
-        </Card>
-        <Card className="w-fit">
-          <CardHeader>Hourly</CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="w-3xl h-64">
-              <AreaChart responsive data={countByHour} margin={{ top: 10, right: 30, bottom: 10, left: 10 }} style={{ overflow: 'visible' }}>
+      </CardContent>
+    </Card>
+    <Card className="grow">
+      <CardHeader>Hourly</CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="w-full h-64">
+          <AreaChart responsive data={countByHour} margin={{ top: 10, right: 30, bottom: 10, left: 10 }} style={{ overflow: 'visible' }}>
                 {showUnfiltered ? <Line dataKey="unfiltered" name="Total" /> : <></>}
                 {data.filtered ? <Area dataKey="filtered" name="Filtered" /> : <></>}
-                <XAxis dataKey="hour" tickFormatter={(v) => hourFormatter.format(new Date(v))} />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} labelFormatter={(v) => hourFormatter.format(new Date(v))}/>
-              </AreaChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>;
+              <XAxis dataKey="hour" tickFormatter={(v) => hourFormatter.format(new Date(v))} />
+              <YAxis />
+              <ChartTooltip content={<ChartTooltipContent />} labelFormatter={(v) => hourFormatter.format(new Date(v))}/>
+            </AreaChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+  </div>);
 }
 
 function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boolean }) {
@@ -122,10 +124,10 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
   const monthFormatter = new Intl.DateTimeFormat(undefined, { month: 'long' });
 
   return <div className='flex flex-wrap'>
-        <Card className="w-fit">
+        <Card className="grow">
           <CardHeader>Monthly</CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="w-3xl h-64">
+            <ChartContainer config={chartConfig} className="w-full h-64">
               <AreaChart responsive data={countByMonth} margin={{ top: 10, right: 30, bottom: 10, left: 10 }} style={{ overflow: 'visible' }}>
                 {showUnfiltered ? <Line dataKey="unfiltered" name="Total" /> : <></>}
                 {data.filtered ? <Area dataKey="filtered" name="Filtered" /> : <></>}
@@ -136,10 +138,10 @@ function Graphs({query, showUnfiltered} : { query: string; showUnfiltered: boole
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card className="w-fit">
+        <Card className="grow">
           <CardHeader>Daily</CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="w-3xl h-64">
+            <ChartContainer config={chartConfig} className="w-full h-64">
               <AreaChart responsive data={countByDay} margin={{ top: 10, right: 30, bottom: 10, left: 10 }} style={{ overflow: 'visible' }}>
                 {showUnfiltered ? <Line dataKey="unfiltered" name="Total" /> : <></>}
                 {data.filtered ? <Area dataKey="filtered" name="Filtered" /> : <></>}
