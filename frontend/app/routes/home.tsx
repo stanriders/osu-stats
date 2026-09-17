@@ -53,14 +53,14 @@ function Hourly({
   );
 
   if (error) return <div>failed to load</div>;
-  if (isLoading)
+  /*if (isLoading)
     return (
       <div>
         <Spinner />
       </div>
-    );
+    );*/
 
-  const countByHour = data.unfiltered.countByHour.map((item, index) => ({
+  const countByHour = data?.unfiltered?.countByHour.map((item, index) => ({
     hour: item.hour,
     unfiltered: item.count,
     filtered:
@@ -71,7 +71,7 @@ function Hourly({
 
   const hourFormatter = new Intl.DateTimeFormat(undefined, { hour: "numeric" });
 
-  const stats = data.filtered ?? data.unfiltered;
+  const stats = data?.filtered ?? data?.unfiltered;
   const int = new Intl.NumberFormat(undefined);
   const dec = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
   const pct = new Intl.NumberFormat(undefined, {
@@ -82,45 +82,51 @@ function Hourly({
   return (
     <div className="flex flex-wrap">
       <Card className="grow-1">
-        <CardHeader>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                data-empty={!date}
-                className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
-              >
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                defaultMonth={date}
-              />
-            </PopoverContent>
-          </Popover>
-        </CardHeader>
-        <CardContent>
-          <p>Total scores: {int.format(stats.totalCount)}</p>
-          <p>Scores with replays: {int.format(stats.totalHasReplay)}</p>
-          <p>
-            Scores with perfect combo: {int.format(stats.totalPerfectCombo)}
-          </p>
-          <p>SS: {int.format(stats.totalSS)}</p>
-          <p>S: {int.format(stats.totalS)}</p>
-          <p>A: {int.format(stats.totalA)}</p>
-          <p>Average accuracy: {pct.format(stats.averageAccuracy)}</p>
-          <p>Average combo: {dec.format(stats.averageCombo)}</p>
-          <p>Average pp: {dec.format(stats.averagePp)}pp</p>
-        </CardContent>
+        {isLoading ? <CardContent><Spinner /></CardContent> :
+          (<>
+          <CardHeader>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  data-empty={!date}
+                  className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+                >
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  defaultMonth={date}
+                />
+              </PopoverContent>
+            </Popover>
+          </CardHeader>
+          <CardContent>
+            <p>Total scores: {int.format(stats.totalCount)}</p>
+            <p>Scores with replays: {int.format(stats.totalHasReplay)}</p>
+            <p>
+              Scores with perfect combo: {int.format(stats.totalPerfectCombo)}
+            </p>
+            <p>SS: {int.format(stats.totalSS)}</p>
+            <p>S: {int.format(stats.totalS)}</p>
+            <p>A: {int.format(stats.totalA)}</p>
+            <p>Average accuracy: {pct.format(stats.averageAccuracy)}</p>
+            <p>Average combo: {dec.format(stats.averageCombo)}</p>
+            <p>Average pp: {dec.format(stats.averagePp)}pp</p>
+          </CardContent>
+          </>)
+        }
+        
       </Card>
       <Card className="grow-7">
         <CardHeader>Hourly</CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="sm:h-64 lg:h-100 w-full">
+        <CardContent className="sm:h-64 lg:h-100 w-full">
+                  {isLoading ? <Spinner /> :
+          (<ChartContainer config={chartConfig} className="h-full w-full">
             <AreaChart
               responsive
               data={countByHour}
@@ -148,7 +154,8 @@ function Hourly({
                 labelFormatter={(v) => hourFormatter.format(new Date(v))}
               />
             </AreaChart>
-          </ChartContainer>
+          </ChartContainer>)
+        }
         </CardContent>
       </Card>
     </div>
@@ -168,20 +175,20 @@ function Graphs({
   });
 
   if (error) return <div>failed to load</div>;
-  if (isLoading)
+  /*if (isLoading)
     return (
       <div>
         <Spinner />
       </div>
-    );
+    );*/
 
-  const countByMonth = data.unfiltered.countByMonth.map((item, index) => ({
+  const countByMonth = data?.unfiltered?.countByMonth.map((item, index) => ({
     date: item.date,
     unfiltered: item.count,
     filtered: data.filtered?.countByMonth[index]?.count,
   }));
 
-  const countByDay = data.unfiltered.countByDay.map((item, index) => ({
+  const countByDay = data?.unfiltered?.countByDay.map((item, index) => ({
     date: item.date,
     unfiltered: item.count,
     filtered: data.filtered?.countByDay[index]?.count,
@@ -201,8 +208,10 @@ function Graphs({
     <div className="flex flex-wrap">
       <Card className="grow-3">
         <CardHeader>Monthly</CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-64 w-full">
+        <CardContent className="h-64 w-full">
+          {isLoading ? <Spinner /> :
+          (
+          <ChartContainer config={chartConfig} className="h-full w-full">
             <AreaChart
               responsive
               data={countByMonth}
@@ -231,13 +240,15 @@ function Graphs({
                 labelFormatter={(v) => monthFormatter.format(new Date(v))}
               />
             </AreaChart>
-          </ChartContainer>
+          </ChartContainer>)}
         </CardContent>
       </Card>
       <Card className="grow-6">
         <CardHeader>Daily</CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-64 w-full">
+        <CardContent className="h-64 w-full">
+          {isLoading ? <Spinner /> :
+          (
+          <ChartContainer config={chartConfig} className="h-full w-full">
             <AreaChart
               responsive
               data={countByDay}
@@ -265,7 +276,7 @@ function Graphs({
                 labelFormatter={(v) => dayFormatter.format(new Date(v))}
               />
             </AreaChart>
-          </ChartContainer>
+          </ChartContainer>)}
         </CardContent>
       </Card>
     </div>
