@@ -5,7 +5,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "~/components/ui/chart";
-import { Area, AreaChart, Line, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, Line, XAxis, YAxis } from "recharts";
 import { type ChartConfig } from "~/components/ui/chart";
 import { ButtonGroup } from "~/components/ui/button-group";
 import { Button } from "~/components/ui/button";
@@ -81,14 +81,14 @@ function Hourly({
 
   return (
     <div className="flex flex-wrap">
-      <Card className="w-fit">
+      <Card className="grow-1">
         <CardHeader>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 data-empty={!date}
-                className="w-[212px] justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+                className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
               >
                 {date ? format(date, "PPP") : <span>Pick a date</span>}
               </Button>
@@ -117,16 +117,17 @@ function Hourly({
           <p>Average pp: {dec.format(stats.averagePp)}pp</p>
         </CardContent>
       </Card>
-      <Card className="grow">
+      <Card className="grow-7">
         <CardHeader>Hourly</CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-64 w-full">
+          <ChartContainer config={chartConfig} className="sm:h-64 lg:h-100 w-full">
             <AreaChart
               responsive
               data={countByHour}
               margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
               style={{ overflow: "visible" }}
             >
+              <CartesianGrid />
               {showUnfiltered ? (
                 <Line dataKey="unfiltered" name="Total" />
               ) : (
@@ -141,7 +142,7 @@ function Hourly({
                 dataKey="hour"
                 tickFormatter={(v) => hourFormatter.format(new Date(v))}
               />
-              <YAxis />
+              <YAxis width="auto" />
               <ChartTooltip
                 content={<ChartTooltipContent />}
                 labelFormatter={(v) => hourFormatter.format(new Date(v))}
@@ -198,7 +199,7 @@ function Graphs({
 
   return (
     <div className="flex flex-wrap">
-      <Card className="grow">
+      <Card className="grow-3">
         <CardHeader>Monthly</CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-64 w-full">
@@ -208,6 +209,7 @@ function Graphs({
               margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
               style={{ overflow: "visible" }}
             >
+              <CartesianGrid />
               {showUnfiltered ? (
                 <Line dataKey="unfiltered" name="Total" />
               ) : (
@@ -232,7 +234,7 @@ function Graphs({
           </ChartContainer>
         </CardContent>
       </Card>
-      <Card className="grow">
+      <Card className="grow-6">
         <CardHeader>Daily</CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-64 w-full">
@@ -242,6 +244,7 @@ function Graphs({
               margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
               style={{ overflow: "visible" }}
             >
+              <CartesianGrid />
               {showUnfiltered ? (
                 <Line dataKey="unfiltered" name="Total" />
               ) : (
