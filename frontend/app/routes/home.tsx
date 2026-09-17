@@ -82,80 +82,85 @@ function Hourly({
   return (
     <div className="flex flex-wrap">
       <Card className="grow-1">
-        {isLoading ? <CardContent><Spinner /></CardContent> :
-          (<>
-          <CardHeader>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  data-empty={!date}
-                  className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
-                >
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  defaultMonth={date}
-                />
-              </PopoverContent>
-            </Popover>
-          </CardHeader>
+        {isLoading ? (
           <CardContent>
-            <p>Total scores: {int.format(stats.totalCount)}</p>
-            <p>Scores with replays: {int.format(stats.totalHasReplay)}</p>
-            <p>
-              Scores with perfect combo: {int.format(stats.totalPerfectCombo)}
-            </p>
-            <p>SS: {int.format(stats.totalSS)}</p>
-            <p>S: {int.format(stats.totalS)}</p>
-            <p>A: {int.format(stats.totalA)}</p>
-            <p>Average accuracy: {pct.format(stats.averageAccuracy)}</p>
-            <p>Average combo: {dec.format(stats.averageCombo)}</p>
-            <p>Average pp: {dec.format(stats.averagePp)}pp</p>
+            <Spinner />
           </CardContent>
-          </>)
-        }
-        
+        ) : (
+          <>
+            <CardHeader>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    data-empty={!date}
+                    className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+                  >
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    defaultMonth={date}
+                  />
+                </PopoverContent>
+              </Popover>
+            </CardHeader>
+            <CardContent>
+              <p>Total scores: {int.format(stats.totalCount)}</p>
+              <p>Scores with replays: {int.format(stats.totalHasReplay)}</p>
+              <p>
+                Scores with perfect combo: {int.format(stats.totalPerfectCombo)}
+              </p>
+              <p>SS: {int.format(stats.totalSS)}</p>
+              <p>S: {int.format(stats.totalS)}</p>
+              <p>A: {int.format(stats.totalA)}</p>
+              <p>Average accuracy: {pct.format(stats.averageAccuracy)}</p>
+              <p>Average combo: {dec.format(stats.averageCombo)}</p>
+              <p>Average pp: {dec.format(stats.averagePp)}pp</p>
+            </CardContent>
+          </>
+        )}
       </Card>
       <Card className="grow-7">
         <CardHeader>Hourly</CardHeader>
-        <CardContent className="sm:h-64 lg:h-100 w-full">
-                  {isLoading ? <Spinner /> :
-          (<ChartContainer config={chartConfig} className="h-full w-full">
-            <AreaChart
-              responsive
-              data={countByHour}
-              margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
-              style={{ overflow: "visible" }}
-            >
-              <CartesianGrid />
-              {showUnfiltered ? (
-                <Line dataKey="unfiltered" name="Total" />
-              ) : (
-                <></>
-              )}
-              {data.filtered ? (
-                <Area dataKey="filtered" name="Filtered" />
-              ) : (
-                <></>
-              )}
-              <XAxis
-                dataKey="hour"
-                tickFormatter={(v) => hourFormatter.format(new Date(v))}
-              />
-              <YAxis width="auto" />
-              <ChartTooltip
-                content={<ChartTooltipContent />}
-                labelFormatter={(v) => hourFormatter.format(new Date(v))}
-              />
-            </AreaChart>
-          </ChartContainer>)
-        }
+        <CardContent className="h-64 w-full lg:h-100">
+          {isLoading ? (
+            <Spinner />
+          ) : (
+            <ChartContainer config={chartConfig} className="h-full w-full">
+              <AreaChart
+                responsive
+                data={countByHour}
+                margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
+                style={{ overflow: "visible" }}
+              >
+                <CartesianGrid />
+                {showUnfiltered ? (
+                  <Line dataKey="unfiltered" name="Total" />
+                ) : (
+                  <></>
+                )}
+                {data.filtered ? (
+                  <Area dataKey="filtered" name="Filtered" />
+                ) : (
+                  <></>
+                )}
+                <XAxis
+                  dataKey="hour"
+                  tickFormatter={(v) => hourFormatter.format(new Date(v))}
+                />
+                <YAxis width="auto" />
+                <ChartTooltip
+                  content={<ChartTooltipContent />}
+                  labelFormatter={(v) => hourFormatter.format(new Date(v))}
+                />
+              </AreaChart>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -206,77 +211,81 @@ function Graphs({
 
   return (
     <div className="flex flex-wrap">
-      <Card className="grow-3">
+      <Card className="grow-1">
         <CardHeader>Monthly</CardHeader>
-        <CardContent className="h-64 w-full">
-          {isLoading ? <Spinner /> :
-          (
-          <ChartContainer config={chartConfig} className="h-full w-full">
-            <AreaChart
-              responsive
-              data={countByMonth}
-              margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
-              style={{ overflow: "visible" }}
-            >
-              <CartesianGrid />
-              {showUnfiltered ? (
-                <Line dataKey="unfiltered" name="Total" />
-              ) : (
-                <></>
-              )}
-              {data.filtered ? (
-                <Area dataKey="filtered" name="Filtered" />
-              ) : (
-                <></>
-              )}
-              <XAxis
-                dataKey="date"
-                tickFormatter={(v) => monthFormatter.format(new Date(v))}
-                textAnchor="middle"
-              />
-              <YAxis tickFormatter={compactNumberFormatter.format} />
-              <ChartTooltip
-                content={<ChartTooltipContent />}
-                labelFormatter={(v) => monthFormatter.format(new Date(v))}
-              />
-            </AreaChart>
-          </ChartContainer>)}
+        <CardContent className="h-64 w-full lg:h-82">
+          {isLoading ? (
+            <Spinner />
+          ) : (
+            <ChartContainer config={chartConfig} className="h-full w-full">
+              <AreaChart
+                responsive
+                data={countByMonth}
+                margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
+                style={{ overflow: "visible" }}
+              >
+                <CartesianGrid />
+                {showUnfiltered ? (
+                  <Line dataKey="unfiltered" name="Total" />
+                ) : (
+                  <></>
+                )}
+                {data.filtered ? (
+                  <Area dataKey="filtered" name="Filtered" />
+                ) : (
+                  <></>
+                )}
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(v) => monthFormatter.format(new Date(v))}
+                  textAnchor="middle"
+                />
+                <YAxis tickFormatter={compactNumberFormatter.format} />
+                <ChartTooltip
+                  content={<ChartTooltipContent />}
+                  labelFormatter={(v) => monthFormatter.format(new Date(v))}
+                />
+              </AreaChart>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
       <Card className="grow-6">
         <CardHeader>Daily</CardHeader>
-        <CardContent className="h-64 w-full">
-          {isLoading ? <Spinner /> :
-          (
-          <ChartContainer config={chartConfig} className="h-full w-full">
-            <AreaChart
-              responsive
-              data={countByDay}
-              margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
-              style={{ overflow: "visible" }}
-            >
-              <CartesianGrid />
-              {showUnfiltered ? (
-                <Line dataKey="unfiltered" name="Total" />
-              ) : (
-                <></>
-              )}
-              {data.filtered ? (
-                <Area dataKey="filtered" name="Filtered" />
-              ) : (
-                <></>
-              )}
-              <XAxis
-                dataKey="date"
-                tickFormatter={(v) => dayFormatter.format(new Date(v))}
-              />
-              <YAxis tickFormatter={compactNumberFormatter.format} />
-              <ChartTooltip
-                content={<ChartTooltipContent />}
-                labelFormatter={(v) => dayFormatter.format(new Date(v))}
-              />
-            </AreaChart>
-          </ChartContainer>)}
+        <CardContent className="h-64 w-full lg:h-82">
+          {isLoading ? (
+            <Spinner />
+          ) : (
+            <ChartContainer config={chartConfig} className="h-full w-full">
+              <AreaChart
+                responsive
+                data={countByDay}
+                margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
+                style={{ overflow: "visible" }}
+              >
+                <CartesianGrid />
+                {showUnfiltered ? (
+                  <Line dataKey="unfiltered" name="Total" />
+                ) : (
+                  <></>
+                )}
+                {data.filtered ? (
+                  <Area dataKey="filtered" name="Filtered" />
+                ) : (
+                  <></>
+                )}
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(v) => dayFormatter.format(new Date(v))}
+                />
+                <YAxis tickFormatter={compactNumberFormatter.format} />
+                <ChartTooltip
+                  content={<ChartTooltipContent />}
+                  labelFormatter={(v) => dayFormatter.format(new Date(v))}
+                />
+              </AreaChart>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -360,6 +369,21 @@ export default function Home() {
             </ButtonGroup>
           </CardContent>
         </Card>
+        <Card className="max-w-lg min-w-52">
+          <FieldGroup className="mx-4">
+            <Field orientation="horizontal">
+              <Checkbox
+                checked={showUnfiltered}
+                onCheckedChange={setShowUnfiltered}
+                id="show-unfiltered"
+              />
+              <FieldLabel htmlFor="show-unfiltered">
+                Show unfiltered graph
+              </FieldLabel>
+            </Field>
+          </FieldGroup>
+        </Card>
+
         <Card className="w-full max-w-lg">
           <Collapsible>
             <CollapsibleTrigger className="w-full">
@@ -833,18 +857,6 @@ export default function Home() {
           </Collapsible>
         </Card>
       </div>
-      <FieldGroup className="mx-auto">
-        <Field orientation="horizontal">
-          <Checkbox
-            checked={showUnfiltered}
-            onCheckedChange={setShowUnfiltered}
-            id="show-unfiltered"
-          />
-          <FieldLabel htmlFor="show-unfiltered">
-            Show unfiltered graph
-          </FieldLabel>
-        </Field>
-      </FieldGroup>
       <Graphs query={query} showUnfiltered={showUnfiltered} />
       <Hourly query={query} showUnfiltered={showUnfiltered} />
     </>
