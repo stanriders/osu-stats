@@ -37,7 +37,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           data-website-id="f8a4f3fe-13fd-4ecc-90b4-aba002502bc1"
         ></script>
       </head>
-      <body className="h-full w-full bg-background px-8 py-8">
+      <body className="container h-auto mx-auto bg-background px-2 py-8">
         <main>{children}</main>
         <ScrollRestoration />
         <Scripts />

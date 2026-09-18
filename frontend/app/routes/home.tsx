@@ -126,8 +126,7 @@ function Hourly({
         )}
       </Card>
       <Card className="grow-7">
-        <CardHeader>Hourly</CardHeader>
-        <CardContent className="h-64 w-full lg:h-100">
+        <CardContent className="h-64 w-full lg:h-82">
           {isLoading ? (
             <Spinner />
           ) : (
@@ -153,7 +152,7 @@ function Hourly({
                   dataKey="hour"
                   tickFormatter={(v) => hourFormatter.format(new Date(v))}
                 />
-                <YAxis width="auto" />
+                <YAxis width="auto" niceTicks="snap125"/>
                 <ChartTooltip
                   content={<ChartTooltipContent />}
                   labelFormatter={(v) => hourFormatter.format(new Date(v))}
@@ -213,7 +212,7 @@ function Graphs({
     <div className="flex flex-wrap">
       <Card className="grow-1">
         <CardHeader>Monthly</CardHeader>
-        <CardContent className="h-64 w-full lg:h-82">
+        <CardContent className="h-64 w-full lg:h-72">
           {isLoading ? (
             <Spinner />
           ) : (
@@ -238,9 +237,9 @@ function Graphs({
                 <XAxis
                   dataKey="date"
                   tickFormatter={(v) => monthFormatter.format(new Date(v))}
-                  textAnchor="middle"
+                  width="auto" 
                 />
-                <YAxis tickFormatter={compactNumberFormatter.format} />
+                <YAxis tickFormatter={compactNumberFormatter.format} niceTicks="snap125"/>
                 <ChartTooltip
                   content={<ChartTooltipContent />}
                   labelFormatter={(v) => monthFormatter.format(new Date(v))}
@@ -252,7 +251,7 @@ function Graphs({
       </Card>
       <Card className="grow-6">
         <CardHeader>Daily</CardHeader>
-        <CardContent className="h-64 w-full lg:h-82">
+        <CardContent className="h-64 w-full lg:h-72">
           {isLoading ? (
             <Spinner />
           ) : (
@@ -277,8 +276,9 @@ function Graphs({
                 <XAxis
                   dataKey="date"
                   tickFormatter={(v) => dayFormatter.format(new Date(v))}
+                  width="auto" 
                 />
-                <YAxis tickFormatter={compactNumberFormatter.format} />
+                <YAxis tickFormatter={compactNumberFormatter.format} niceTicks="snap125"/>
                 <ChartTooltip
                   content={<ChartTooltipContent />}
                   labelFormatter={(v) => dayFormatter.format(new Date(v))}
@@ -332,9 +332,24 @@ export default function Home() {
         : [...prev, e.target.value],
     );
   };
+
+  const mods = [
+    {name: "Reduction", types: ["DC", "EZ", "NF", "HT"]},
+    {name: "Increase", types:  ["HR", "SD", "PF", "DT", "NC", "HD", "TC", "FL", "BL", "ST", "AC"]},
+    {name: "Automation", types:  ["AP", "RX", "SO"]},
+    {name: "Conversion", types:  ["TP", "DA", "CL", "RD", "MR", "AL", "SG"]},
+    {name: "Fun", types:  ["BR",/* ... */ "MU"]},
+    {name: "Other", types:  ["TD"]}
+  ]
+
   return (
     <>
-      <div className="flex">
+      <div className="flex flex-wrap">
+        <Card className="min-w-fit">
+          <CardContent>
+            <h1>osu! stats</h1>
+          </CardContent>
+        </Card>
         <Card className="min-w-fit">
           <CardContent>
             <ButtonGroup>
@@ -369,7 +384,7 @@ export default function Home() {
             </ButtonGroup>
           </CardContent>
         </Card>
-        <Card className="max-w-lg min-w-52">
+        <Card className="max-w-lg min-w-52 flex-none">
           <FieldGroup className="mx-4">
             <Field orientation="horizontal">
               <Checkbox
@@ -383,475 +398,62 @@ export default function Home() {
             </Field>
           </FieldGroup>
         </Card>
-
-        <Card className="w-full max-w-lg">
+</div>
+      <div className="flex">
+        <Card className="w-1/2">
           <Collapsible>
             <CollapsibleTrigger className="w-full">
               <CardHeader>Mods (include)</CardHeader>
             </CollapsibleTrigger>
             <CardContent>
-              <CollapsibleContent>
-                <ButtonGroup>
-                  <Button
-                    variant={
-                      modsInclude.includes("DC") ? "secondary" : "outline"
-                    }
-                    value="DC"
-                    onClick={handleModIncludeChange}
-                  >
-                    DC
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("EZ") ? "secondary" : "outline"
-                    }
-                    value="EZ"
-                    onClick={handleModIncludeChange}
-                  >
-                    EZ
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("NF") ? "secondary" : "outline"
-                    }
-                    value="NF"
-                    onClick={handleModIncludeChange}
-                  >
-                    NF
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("HT") ? "secondary" : "outline"
-                    }
-                    value="HT"
-                    onClick={handleModIncludeChange}
-                  >
-                    HT
-                  </Button>
-                </ButtonGroup>
-                <ButtonGroup>
-                  <Button
-                    variant={
-                      modsInclude.includes("AC") ? "secondary" : "outline"
-                    }
-                    value="AC"
-                    onClick={handleModIncludeChange}
-                  >
-                    AC
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("BL") ? "secondary" : "outline"
-                    }
-                    value="BL"
-                    onClick={handleModIncludeChange}
-                  >
-                    BL
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("DT") ? "secondary" : "outline"
-                    }
-                    value="DT"
-                    onClick={handleModIncludeChange}
-                  >
-                    DT
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("HD") ? "secondary" : "outline"
-                    }
-                    value="HD"
-                    onClick={handleModIncludeChange}
-                  >
-                    HD
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("HR") ? "secondary" : "outline"
-                    }
-                    value="HR"
-                    onClick={handleModIncludeChange}
-                  >
-                    HR
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("NC") ? "secondary" : "outline"
-                    }
-                    value="NC"
-                    onClick={handleModIncludeChange}
-                  >
-                    NC
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("PF") ? "secondary" : "outline"
-                    }
-                    value="PF"
-                    onClick={handleModIncludeChange}
-                  >
-                    PF
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("SD") ? "secondary" : "outline"
-                    }
-                    value="SD"
-                    onClick={handleModIncludeChange}
-                  >
-                    SD
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("ST") ? "secondary" : "outline"
-                    }
-                    value="ST"
-                    onClick={handleModIncludeChange}
-                  >
-                    ST
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("TC") ? "secondary" : "outline"
-                    }
-                    value="TC"
-                    onClick={handleModIncludeChange}
-                  >
-                    TC
-                  </Button>
-                </ButtonGroup>
-                <ButtonGroup>
-                  <Button
-                    variant={
-                      modsInclude.includes("AL") ? "secondary" : "outline"
-                    }
-                    value="AL"
-                    onClick={handleModIncludeChange}
-                  >
-                    AL
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("CL") ? "secondary" : "outline"
-                    }
-                    value="CL"
-                    onClick={handleModIncludeChange}
-                  >
-                    CL
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("DA") ? "secondary" : "outline"
-                    }
-                    value="DA"
-                    onClick={handleModIncludeChange}
-                  >
-                    DA
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("MR") ? "secondary" : "outline"
-                    }
-                    value="MR"
-                    onClick={handleModIncludeChange}
-                  >
-                    MR
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("RD") ? "secondary" : "outline"
-                    }
-                    value="RD"
-                    onClick={handleModIncludeChange}
-                  >
-                    RD
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("SG") ? "secondary" : "outline"
-                    }
-                    value="SG"
-                    onClick={handleModIncludeChange}
-                  >
-                    SG
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("TP") ? "secondary" : "outline"
-                    }
-                    value="TP"
-                    onClick={handleModIncludeChange}
-                  >
-                    TP
-                  </Button>
-                </ButtonGroup>
-                <ButtonGroup>
-                  <Button
-                    variant={
-                      modsInclude.includes("AP") ? "secondary" : "outline"
-                    }
-                    value="AP"
-                    onClick={handleModIncludeChange}
-                  >
-                    AP
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("RX") ? "secondary" : "outline"
-                    }
-                    value="RX"
-                    onClick={handleModIncludeChange}
-                  >
-                    RX
-                  </Button>
-                  <Button
-                    variant={
-                      modsInclude.includes("SO") ? "secondary" : "outline"
-                    }
-                    value="SO"
-                    onClick={handleModIncludeChange}
-                  >
-                    SO
-                  </Button>
-                </ButtonGroup>
-                <ButtonGroup>fun mods</ButtonGroup>
+              <CollapsibleContent className="w-fit">
+                <table>
+                  <tbody>
+                  {mods.map((category)=>{
+                    return (
+                    <tr>
+                      <th className="px-2">{category.name}</th>
+                      <div className="flex flex-wrap">
+                      { category.types.map((mod: string) => {
+                        return (<td>
+                          <Button className="w-12" variant={ modsInclude.includes(mod) ? "secondary" : "outline" } value={mod} onClick={handleModIncludeChange}>{mod}</Button>
+                        </td>)
+                        })
+                      }
+                      </div>
+                    </tr>)}
+                  )}
+                  </tbody>
+                </table>
               </CollapsibleContent>
             </CardContent>
           </Collapsible>
         </Card>
-        <Card className="w-full max-w-lg">
+        <Card className="w-1/2">
           <Collapsible>
             <CollapsibleTrigger className="w-full">
               <CardHeader>Mods (exclude)</CardHeader>
             </CollapsibleTrigger>
             <CardContent>
               <CollapsibleContent>
-                <ButtonGroup>
-                  <Button
-                    variant={
-                      modsExclude.includes("DC") ? "secondary" : "outline"
-                    }
-                    value="DC"
-                    onClick={handleModExcludeChange}
-                  >
-                    DC
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("EZ") ? "secondary" : "outline"
-                    }
-                    value="EZ"
-                    onClick={handleModExcludeChange}
-                  >
-                    EZ
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("NF") ? "secondary" : "outline"
-                    }
-                    value="NF"
-                    onClick={handleModExcludeChange}
-                  >
-                    NF
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("HT") ? "secondary" : "outline"
-                    }
-                    value="HT"
-                    onClick={handleModExcludeChange}
-                  >
-                    HT
-                  </Button>
-                </ButtonGroup>
-                <ButtonGroup>
-                  <Button
-                    variant={
-                      modsExclude.includes("AC") ? "secondary" : "outline"
-                    }
-                    value="AC"
-                    onClick={handleModExcludeChange}
-                  >
-                    AC
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("BL") ? "secondary" : "outline"
-                    }
-                    value="BL"
-                    onClick={handleModExcludeChange}
-                  >
-                    BL
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("DT") ? "secondary" : "outline"
-                    }
-                    value="DT"
-                    onClick={handleModExcludeChange}
-                  >
-                    DT
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("HD") ? "secondary" : "outline"
-                    }
-                    value="HD"
-                    onClick={handleModExcludeChange}
-                  >
-                    HD
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("HR") ? "secondary" : "outline"
-                    }
-                    value="HR"
-                    onClick={handleModExcludeChange}
-                  >
-                    HR
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("NC") ? "secondary" : "outline"
-                    }
-                    value="NC"
-                    onClick={handleModExcludeChange}
-                  >
-                    NC
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("PF") ? "secondary" : "outline"
-                    }
-                    value="PF"
-                    onClick={handleModExcludeChange}
-                  >
-                    PF
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("SD") ? "secondary" : "outline"
-                    }
-                    value="SD"
-                    onClick={handleModExcludeChange}
-                  >
-                    SD
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("ST") ? "secondary" : "outline"
-                    }
-                    value="ST"
-                    onClick={handleModExcludeChange}
-                  >
-                    ST
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("TC") ? "secondary" : "outline"
-                    }
-                    value="TC"
-                    onClick={handleModExcludeChange}
-                  >
-                    TC
-                  </Button>
-                </ButtonGroup>
-                <ButtonGroup>
-                  <Button
-                    variant={
-                      modsExclude.includes("AL") ? "secondary" : "outline"
-                    }
-                    value="AL"
-                    onClick={handleModExcludeChange}
-                  >
-                    AL
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("CL") ? "secondary" : "outline"
-                    }
-                    value="CL"
-                    onClick={handleModExcludeChange}
-                  >
-                    CL
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("DA") ? "secondary" : "outline"
-                    }
-                    value="DA"
-                    onClick={handleModExcludeChange}
-                  >
-                    DA
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("MR") ? "secondary" : "outline"
-                    }
-                    value="MR"
-                    onClick={handleModExcludeChange}
-                  >
-                    MR
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("RD") ? "secondary" : "outline"
-                    }
-                    value="RD"
-                    onClick={handleModExcludeChange}
-                  >
-                    RD
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("SG") ? "secondary" : "outline"
-                    }
-                    value="SG"
-                    onClick={handleModExcludeChange}
-                  >
-                    SG
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("TP") ? "secondary" : "outline"
-                    }
-                    value="TP"
-                    onClick={handleModExcludeChange}
-                  >
-                    TP
-                  </Button>
-                </ButtonGroup>
-                <ButtonGroup>
-                  <Button
-                    variant={
-                      modsExclude.includes("AP") ? "secondary" : "outline"
-                    }
-                    value="AP"
-                    onClick={handleModExcludeChange}
-                  >
-                    AP
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("RX") ? "secondary" : "outline"
-                    }
-                    value="RX"
-                    onClick={handleModExcludeChange}
-                  >
-                    RX
-                  </Button>
-                  <Button
-                    variant={
-                      modsExclude.includes("SO") ? "secondary" : "outline"
-                    }
-                    value="SO"
-                    onClick={handleModExcludeChange}
-                  >
-                    SO
-                  </Button>
-                </ButtonGroup>
-                <ButtonGroup>fun mods</ButtonGroup>
+                <table>
+                  <tbody>
+                  {mods.map((category)=>{
+                    return (
+                    <tr>
+                      <th className="px-2">{category.name}</th>
+                      <div className="flex flex-wrap">
+                      { category.types.map((mod: string) => {
+                        return (<td>
+                          <Button className="w-12" variant={ modsExclude.includes(mod) ? "secondary" : "outline" } value={mod} onClick={handleModExcludeChange}>{mod}</Button>
+                        </td>)
+                        })
+                      }
+                      </div>
+                    </tr>)}
+                  )}
+                  </tbody>
+                </table>
               </CollapsibleContent>
             </CardContent>
           </Collapsible>
