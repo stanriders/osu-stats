@@ -125,7 +125,7 @@ function Hourly({
         )}
       </Card>
       <Card className="grow-7">
-        <CardContent className="h-64 w-full lg:h-82">
+        <CardContent className="h-64 w-full pt-8 lg:h-82">
           {error ? (
             <CardContent>failed to load</CardContent>
           ) : (
@@ -142,12 +142,28 @@ function Hourly({
                   >
                     <CartesianGrid />
                     {showUnfiltered ? (
-                      <Line dataKey="unfiltered" name="Total" />
+                      <Area
+                        dataKey="unfiltered"
+                        name="Total"
+                        stroke="var(--color-pink-400)"
+                        fill={
+                          data.filtered ? "#00000000" : "var(--color-pink-400)"
+                        }
+                        fillOpacity={0.2}
+                        strokeWidth={2}
+                      />
                     ) : (
                       <></>
                     )}
                     {data.filtered ? (
-                      <Area dataKey="filtered" name="Filtered" />
+                      <Area
+                        dataKey="filtered"
+                        name="Filtered"
+                        stroke="var(--color-violet-400)"
+                        fill="var(--color-violet-400)"
+                        fillOpacity={0.2}
+                        strokeWidth={2}
+                      />
                     ) : (
                       <></>
                     )}
@@ -208,7 +224,7 @@ function Graphs({
   return (
     <div className="flex flex-wrap">
       <Card className="grow-1">
-        <CardHeader>Monthly</CardHeader>
+        <CardHeader className="text-lg">Monthly</CardHeader>
         <CardContent className="h-64 w-full lg:h-72">
           {error ? (
             <>failed to load</>
@@ -217,21 +233,41 @@ function Graphs({
               {isLoading ? (
                 <Spinner />
               ) : (
-                <ChartContainer config={chartConfig} className="h-full w-full">
+                <ChartContainer
+                  config={chartConfig}
+                  className="h-full w-full fill-pink-600 stroke-pink-600"
+                >
                   <AreaChart
                     responsive
                     data={countByMonth}
+                    className="fill-pink-600 stroke-pink-600"
                     margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
                     style={{ overflow: "visible" }}
                   >
                     <CartesianGrid />
                     {showUnfiltered ? (
-                      <Line dataKey="unfiltered" name="Total" />
+                      <Area
+                        dataKey="unfiltered"
+                        name="Total"
+                        stroke="var(--color-pink-400)"
+                        fill={
+                          data.filtered ? "#00000000" : "var(--color-pink-400)"
+                        }
+                        fillOpacity={0.2}
+                        strokeWidth={2}
+                      />
                     ) : (
                       <></>
                     )}
                     {data.filtered ? (
-                      <Area dataKey="filtered" name="Filtered" />
+                      <Area
+                        dataKey="filtered"
+                        name="Filtered"
+                        stroke="var(--color-violet-400)"
+                        fill="var(--color-violet-400)"
+                        fillOpacity={0.2}
+                        strokeWidth={2}
+                      />
                     ) : (
                       <></>
                     )}
@@ -256,7 +292,7 @@ function Graphs({
         </CardContent>
       </Card>
       <Card className="grow-6">
-        <CardHeader>Daily</CardHeader>
+        <CardHeader className="text-lg">Daily</CardHeader>
         <CardContent className="h-64 w-full lg:h-72">
           {error ? (
             <>failed to load</>
@@ -274,12 +310,28 @@ function Graphs({
                   >
                     <CartesianGrid />
                     {showUnfiltered ? (
-                      <Line dataKey="unfiltered" name="Total" />
+                      <Area
+                        dataKey="unfiltered"
+                        name="Total"
+                        stroke="var(--color-pink-400)"
+                        fill={
+                          data.filtered ? "#00000000" : "var(--color-pink-400)"
+                        }
+                        fillOpacity={0.2}
+                        strokeWidth={2}
+                      />
                     ) : (
                       <></>
                     )}
                     {data.filtered ? (
-                      <Area dataKey="filtered" name="Filtered" />
+                      <Area
+                        dataKey="filtered"
+                        name="Filtered"
+                        stroke="var(--color-violet-400)"
+                        fill="var(--color-violet-400)"
+                        fillOpacity={0.2}
+                        strokeWidth={2}
+                      />
                     ) : (
                       <></>
                     )}
@@ -293,7 +345,7 @@ function Graphs({
                       niceTicks="snap125"
                     />
                     <ChartTooltip
-                      content={<ChartTooltipContent />}
+                      content={<ChartTooltipContent className="min-w-35 p-2" />}
                       labelFormatter={(v) => dayFormatter.format(new Date(v))}
                     />
                   </AreaChart>
@@ -383,7 +435,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="flex">
+      <div className="flex flex-wrap lg:flex-nowrap">
         <Card className="min-w-fit">
           <CardContent>
             <h1>osu! stats</h1>
@@ -423,33 +475,22 @@ export default function Home() {
             </ButtonGroup>
           </CardContent>
         </Card>
-        <Card className="w-full min-w-52">
-          <FieldGroup className="mx-4">
-            <Field orientation="horizontal">
-              <Checkbox
-                checked={showUnfiltered}
-                onCheckedChange={setShowUnfiltered}
-                id="show-unfiltered"
-              />
-              <FieldLabel htmlFor="show-unfiltered">
-                Show unfiltered graph
-              </FieldLabel>
-            </Field>
-          </FieldGroup>
-        </Card>
-      </div>
-      <div className="flex">
-        <Card className="w-1/2">
-          <Collapsible>
-            <CollapsibleTrigger className="w-full pb-4">
-              <CardHeader>Mods (include)</CardHeader>
-            </CollapsibleTrigger>
-            <CardContent>
-              <CollapsibleContent className="w-fit">
+        <Card className="min-w-fit">
+          <CardContent>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+                >
+                  <span>Mods (include)</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
                 {mods.map((category) => {
                   return (
-                    <div className="flex items-center py-0.5">
-                      <div className={`px-2 ${category.color} min-w-24`}>
+                    <div className="flex items-center">
+                      <div className={`px-2 ${category.color} min-w-26`}>
                         {category.name}
                       </div>
                       <div className="flex flex-wrap">
@@ -475,21 +516,23 @@ export default function Home() {
                     </div>
                   );
                 })}
-              </CollapsibleContent>
-            </CardContent>
-          </Collapsible>
-        </Card>
-        <Card className="w-1/2">
-          <Collapsible>
-            <CollapsibleTrigger className="w-full pb-4">
-              <CardHeader className="">Mods (exclude)</CardHeader>
-            </CollapsibleTrigger>
-            <CardContent>
-              <CollapsibleContent>
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+                >
+                  <span>Mods (exclude)</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto min-w-50 p-4" align="start">
                 {mods.map((category) => {
                   return (
-                    <div className="flex items-center py-0.5">
-                      <div className={`px-2 ${category.color} min-w-24`}>
+                    <div className="flex items-center">
+                      <div className={`px-2 ${category.color} min-w-26`}>
                         {category.name}
                       </div>
                       <div className="flex flex-wrap">
@@ -515,9 +558,27 @@ export default function Home() {
                     </div>
                   );
                 })}
-              </CollapsibleContent>
-            </CardContent>
-          </Collapsible>
+              </PopoverContent>
+            </Popover>
+          </CardContent>
+        </Card>
+        <Card className="w-full min-w-52">
+          {query ? (
+            <FieldGroup className="mx-4">
+              <Field orientation="horizontal">
+                <Checkbox
+                  checked={showUnfiltered}
+                  onCheckedChange={setShowUnfiltered}
+                  id="show-unfiltered"
+                />
+                <FieldLabel htmlFor="show-unfiltered">
+                  Show unfiltered graph
+                </FieldLabel>
+              </Field>
+            </FieldGroup>
+          ) : (
+            <></>
+          )}
         </Card>
       </div>
       <Graphs query={query} showUnfiltered={showUnfiltered} />
