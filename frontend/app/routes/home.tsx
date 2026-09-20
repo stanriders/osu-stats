@@ -418,6 +418,8 @@ export default function Home() {
     query += modsExclude.map((x) => `modsExclude=${x}&`).join("");
   }
 
+  if (query == "" && !showUnfiltered) setShowUnfiltered(true);
+
   const handleRulesetChange = (e: any) => {
     if (e.target.value == ruleset) {
       setRuleset(null);
