@@ -349,16 +349,37 @@ export default function Home() {
   };
 
   const mods = [
-    { name: "Reduction", types: ["DC", "EZ", "NF", "HT"] },
+    {
+      name: "Reduction",
+      color: "text-mod-decrease",
+      types: ["EZ", "NF", "HT", "DC"],
+    },
     {
       name: "Increase",
+      color: "text-mod-increase",
       types: ["HR", "SD", "PF", "DT", "NC", "HD", "TC", "FL", "BL", "ST", "AC"],
     },
-    { name: "Automation", types: ["AP", "RX", "SO"] },
-    { name: "Conversion", types: ["TP", "DA", "CL", "RD", "MR", "AL", "SG"] },
-    { name: "Fun", types: ["BR", /* ... */ "MU"] },
-    { name: "Other", types: ["TD"] },
-  ];
+    {
+      name: "Automation",
+      color: "text-mod-automation",
+      types: ["AP", "RX", "SO"],
+    },
+    {
+      name: "Conversion",
+      color: "text-mod-conversion",
+      types: ["TP", "DA", "CL", "RD", "MR", "AL", "SG"],
+    },
+    {
+      name: "Fun",
+      color: "text-mod-fun",
+      types: ["BR", /* ... */ "MU"],
+    },
+    {
+      name: "Other",
+      color: "text-mod-other",
+      types: ["TD"],
+    },
+  ] as const;
 
   return (
     <>
@@ -430,7 +451,9 @@ export default function Home() {
                     {mods.map((category) => {
                       return (
                         <tr>
-                          <th className="px-2">{category.name}</th>
+                          <th className={`px-2 ${category.color}`}>
+                            {category.name}
+                          </th>
                           <div className="flex flex-wrap">
                             {category.types.map((mod: string) => {
                               return (
@@ -472,7 +495,9 @@ export default function Home() {
                     {mods.map((category) => {
                       return (
                         <tr>
-                          <th className="px-2">{category.name}</th>
+                          <th className={`px-2 ${category.color}`}>
+                            {category.name}
+                          </th>
                           <div className="flex flex-wrap">
                             {category.types.map((mod: string) => {
                               return (

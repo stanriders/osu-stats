@@ -25,7 +25,10 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full w-full">
+    <html
+      lang="en"
+      className="dark h-full w-full bg-background text-foreground"
+    >
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -37,7 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           data-website-id="f8a4f3fe-13fd-4ecc-90b4-aba002502bc1"
         ></script>
       </head>
-      <body className="container mx-auto h-auto bg-background px-2 py-8">
+      <body className="container mx-auto px-2 py-8">
         <main>{children}</main>
         <ScrollRestoration />
         <Scripts />
