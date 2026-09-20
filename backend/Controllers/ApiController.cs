@@ -84,7 +84,7 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] int? rulesetId, [FromQuery] string[]? modsInclude, [FromQuery] string[]? modsExclude, [FromQuery] bool? hasSettings)
     {
-        var query = databaseContext.Scores.AsNoTracking();
+        var query = databaseContext.Scores.AsNoTracking().Where(x=> x.Date < DateTime.UtcNow); // exclude future partitions
 
         var date = DateTime.UtcNow;
         date = new DateTime(date.Year, date.Month, date.Day, date.Hour, 0, 0, date.Kind);
