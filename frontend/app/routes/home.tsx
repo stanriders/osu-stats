@@ -105,19 +105,61 @@ function Hourly({
                     </PopoverContent>
                   </Popover>
                 </CardHeader>
-                <CardContent>
-                  <p>Total scores: {int.format(stats.totalCount)}</p>
-                  <p>Scores with replays: {int.format(stats.totalHasReplay)}</p>
-                  <p>
-                    Scores with perfect combo:{" "}
-                    {int.format(stats.totalPerfectCombo)}
-                  </p>
-                  <p>SS: {int.format(stats.totalSS)}</p>
-                  <p>S: {int.format(stats.totalS)}</p>
-                  <p>A: {int.format(stats.totalA)}</p>
-                  <p>Average accuracy: {pct.format(stats.averageAccuracy)}</p>
-                  <p>Average combo: {dec.format(stats.averageCombo)}</p>
-                  <p>Average pp: {dec.format(stats.averagePp)}pp</p>
+                <CardContent className="flex flex-col gap-1">
+                  <div className="flex w-full items-center">
+                    <span className="grow">Total scores</span>
+                    <span className="grow text-right text-lg font-semibold">
+                      {int.format(stats.totalCount)}
+                    </span>
+                  </div>
+                  <div className="flex w-full">
+                    <span className="grow">Scores with replays</span>
+                    <span className="grow text-right font-semibold">
+                      {int.format(stats.totalHasReplay)}
+                    </span>
+                  </div>
+                  <div className="flex w-full">
+                    <span className="grow">Scores with perfect combo</span>
+                    <span className="grow text-right font-semibold">
+                      {int.format(stats.totalPerfectCombo)}
+                    </span>
+                  </div>
+                  <div className="flex w-full">
+                    <span className="grow">SS</span>
+                    <span className="grow text-right font-semibold">
+                      {int.format(stats.totalSS)}
+                    </span>
+                  </div>
+                  <div className="flex w-full">
+                    <span className="grow">S</span>
+                    <span className="grow text-right font-semibold">
+                      {int.format(stats.totalS)}
+                    </span>
+                  </div>
+                  <div className="flex w-full">
+                    <span className="grow">A</span>
+                    <span className="grow text-right font-semibold">
+                      {int.format(stats.totalA)}
+                    </span>
+                  </div>
+                  <div className="flex w-full">
+                    <span className="grow">Average accuracy</span>
+                    <span className="grow text-right font-semibold">
+                      {pct.format(stats.averageAccuracy)}
+                    </span>
+                  </div>
+                  <div className="flex w-full">
+                    <span className="grow">Average combo</span>
+                    <span className="grow text-right font-semibold">
+                      {dec.format(stats.averageCombo)}
+                    </span>
+                  </div>
+                  <div className="flex w-full">
+                    <span className="grow">Average pp</span>
+                    <span className="grow text-right font-semibold">
+                      {dec.format(stats.averagePp)}pp
+                    </span>
+                  </div>
                 </CardContent>
               </>
             )}
@@ -437,9 +479,7 @@ export default function Home() {
     <>
       <div className="flex flex-wrap lg:flex-nowrap">
         <Card className="min-w-fit">
-          <CardContent>
-            <h1>osu! stats</h1>
-          </CardContent>
+          <CardContent className="text-lg">scores!</CardContent>
         </Card>
         <Card className="min-w-fit">
           <CardContent>
@@ -486,7 +526,7 @@ export default function Home() {
                   <span>Mods (include)</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto" align="start">
                 {mods.map((category) => {
                   return (
                     <div className="flex items-center">
@@ -518,7 +558,6 @@ export default function Home() {
                 })}
               </PopoverContent>
             </Popover>
-
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -528,7 +567,7 @@ export default function Home() {
                   <span>Mods (exclude)</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto min-w-50 p-4" align="start">
+              <PopoverContent className="w-auto" align="start">
                 {mods.map((category) => {
                   return (
                     <div className="flex items-center">
