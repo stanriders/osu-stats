@@ -441,88 +441,80 @@ export default function Home() {
       <div className="flex">
         <Card className="w-1/2">
           <Collapsible>
-            <CollapsibleTrigger className="w-full">
+            <CollapsibleTrigger className="w-full pb-4">
               <CardHeader>Mods (include)</CardHeader>
             </CollapsibleTrigger>
             <CardContent>
               <CollapsibleContent className="w-fit">
-                <table>
-                  <tbody>
-                    {mods.map((category) => {
-                      return (
-                        <tr>
-                          <th className={`px-2 ${category.color}`}>
-                            {category.name}
-                          </th>
-                          <div className="flex flex-wrap">
-                            {category.types.map((mod: string) => {
-                              return (
-                                <td>
-                                  <Button
-                                    className="w-12"
-                                    variant={
-                                      modsInclude.includes(mod)
-                                        ? "secondary"
-                                        : "outline"
-                                    }
-                                    value={mod}
-                                    onClick={handleModIncludeChange}
-                                  >
-                                    {mod}
-                                  </Button>
-                                </td>
-                              );
-                            })}
-                          </div>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                {mods.map((category) => {
+                  return (
+                    <div className="flex items-center py-0.5">
+                      <div className={`px-2 ${category.color} min-w-24`}>
+                        {category.name}
+                      </div>
+                      <div className="flex flex-wrap">
+                        {category.types.map((mod: string) => {
+                          return (
+                            <td>
+                              <Button
+                                className="w-12"
+                                variant={
+                                  modsInclude.includes(mod)
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                                value={mod}
+                                onClick={handleModIncludeChange}
+                              >
+                                {mod}
+                              </Button>
+                            </td>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
               </CollapsibleContent>
             </CardContent>
           </Collapsible>
         </Card>
         <Card className="w-1/2">
           <Collapsible>
-            <CollapsibleTrigger className="w-full">
-              <CardHeader>Mods (exclude)</CardHeader>
+            <CollapsibleTrigger className="w-full pb-4">
+              <CardHeader className="">Mods (exclude)</CardHeader>
             </CollapsibleTrigger>
             <CardContent>
               <CollapsibleContent>
-                <table>
-                  <tbody>
-                    {mods.map((category) => {
-                      return (
-                        <tr>
-                          <th className={`px-2 ${category.color}`}>
-                            {category.name}
-                          </th>
-                          <div className="flex flex-wrap">
-                            {category.types.map((mod: string) => {
-                              return (
-                                <td>
-                                  <Button
-                                    className="w-12"
-                                    variant={
-                                      modsExclude.includes(mod)
-                                        ? "secondary"
-                                        : "outline"
-                                    }
-                                    value={mod}
-                                    onClick={handleModExcludeChange}
-                                  >
-                                    {mod}
-                                  </Button>
-                                </td>
-                              );
-                            })}
-                          </div>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                {mods.map((category) => {
+                  return (
+                    <div className="flex items-center py-0.5">
+                      <div className={`px-2 ${category.color} min-w-24`}>
+                        {category.name}
+                      </div>
+                      <div className="flex flex-wrap">
+                        {category.types.map((mod: string) => {
+                          return (
+                            <td>
+                              <Button
+                                className="w-12"
+                                variant={
+                                  modsExclude.includes(mod)
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                                value={mod}
+                                onClick={handleModExcludeChange}
+                              >
+                                {mod}
+                              </Button>
+                            </td>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
               </CollapsibleContent>
             </CardContent>
           </Collapsible>
