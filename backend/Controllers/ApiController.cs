@@ -44,7 +44,7 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
             cache.Set(key, unfiltered, TimeSpan.FromMinutes(1));
         }
 
-        bool anyFiltersEnabled = rulesetId != null || modsInclude is { Length: > 0 } || modsExclude is { Length: > 0 } || hasSettings != null;
+        bool anyFiltersEnabled = rulesetId != null || modsInclude is { Length: > 0 } || modsExclude is { Length: > 0 }/* || hasSettings != null*/;
 
         if (rulesetId != null)
         {
@@ -96,7 +96,7 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
             cache.Set(key, unfiltered, TimeSpan.FromMinutes(10));
         }
 
-        bool anyFiltersEnabled = rulesetId != null || modsInclude is { Length: > 0 } || modsExclude is { Length: > 0 } || hasSettings != null;
+        bool anyFiltersEnabled = rulesetId != null || modsInclude is { Length: > 0 } || modsExclude is { Length: > 0 } /*|| hasSettings != null*/;
 
         if (rulesetId != null)
         {
