@@ -520,7 +520,7 @@ export default function Home() {
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant={modsInclude.length > 0 ? "secondary" : "outline"}
                   className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
                 >
                   <span>Mods (include)</span>
@@ -561,7 +561,7 @@ export default function Home() {
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant={modsExclude.length > 0 ? "secondary" : "outline"}
                   className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
                 >
                   <span>Mods (exclude)</span>
