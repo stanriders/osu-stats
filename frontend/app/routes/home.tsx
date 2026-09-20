@@ -52,14 +52,6 @@ function Hourly({
     { refreshInterval: 5000, revalidateIfStale: false },
   );
 
-  if (error) return <div>failed to load</div>;
-  /*if (isLoading)
-    return (
-      <div>
-        <Spinner />
-      </div>
-    );*/
-
   const countByHour = data?.unfiltered?.countByHour.map((item, index) => ({
     hour: item.hour,
     unfiltered: item.count,
@@ -82,83 +74,96 @@ function Hourly({
   return (
     <div className="flex flex-wrap">
       <Card className="grow-1">
-        {isLoading ? (
-          <CardContent>
-            <Spinner />
-          </CardContent>
+        {error ? (
+          <CardContent>failed to load</CardContent>
         ) : (
           <>
-            <CardHeader>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    data-empty={!date}
-                    className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
-                  >
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    defaultMonth={date}
-                  />
-                </PopoverContent>
-              </Popover>
-            </CardHeader>
-            <CardContent>
-              <p>Total scores: {int.format(stats.totalCount)}</p>
-              <p>Scores with replays: {int.format(stats.totalHasReplay)}</p>
-              <p>
-                Scores with perfect combo: {int.format(stats.totalPerfectCombo)}
-              </p>
-              <p>SS: {int.format(stats.totalSS)}</p>
-              <p>S: {int.format(stats.totalS)}</p>
-              <p>A: {int.format(stats.totalA)}</p>
-              <p>Average accuracy: {pct.format(stats.averageAccuracy)}</p>
-              <p>Average combo: {dec.format(stats.averageCombo)}</p>
-              <p>Average pp: {dec.format(stats.averagePp)}pp</p>
-            </CardContent>
+            {isLoading ? (
+              <CardContent>
+                <Spinner />
+              </CardContent>
+            ) : (
+              <>
+                <CardHeader>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        data-empty={!date}
+                        className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+                      >
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        defaultMonth={date}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </CardHeader>
+                <CardContent>
+                  <p>Total scores: {int.format(stats.totalCount)}</p>
+                  <p>Scores with replays: {int.format(stats.totalHasReplay)}</p>
+                  <p>
+                    Scores with perfect combo:{" "}
+                    {int.format(stats.totalPerfectCombo)}
+                  </p>
+                  <p>SS: {int.format(stats.totalSS)}</p>
+                  <p>S: {int.format(stats.totalS)}</p>
+                  <p>A: {int.format(stats.totalA)}</p>
+                  <p>Average accuracy: {pct.format(stats.averageAccuracy)}</p>
+                  <p>Average combo: {dec.format(stats.averageCombo)}</p>
+                  <p>Average pp: {dec.format(stats.averagePp)}pp</p>
+                </CardContent>
+              </>
+            )}
           </>
         )}
       </Card>
       <Card className="grow-7">
         <CardContent className="h-64 w-full lg:h-82">
-          {isLoading ? (
-            <Spinner />
+          {error ? (
+            <CardContent>failed to load</CardContent>
           ) : (
-            <ChartContainer config={chartConfig} className="h-full w-full">
-              <AreaChart
-                responsive
-                data={countByHour}
-                margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
-                style={{ overflow: "visible" }}
-              >
-                <CartesianGrid />
-                {showUnfiltered ? (
-                  <Line dataKey="unfiltered" name="Total" />
-                ) : (
-                  <></>
-                )}
-                {data.filtered ? (
-                  <Area dataKey="filtered" name="Filtered" />
-                ) : (
-                  <></>
-                )}
-                <XAxis
-                  dataKey="hour"
-                  tickFormatter={(v) => hourFormatter.format(new Date(v))}
-                />
-                <YAxis width="auto" niceTicks="snap125"/>
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                  labelFormatter={(v) => hourFormatter.format(new Date(v))}
-                />
-              </AreaChart>
-            </ChartContainer>
+            <>
+              {isLoading ? (
+                <Spinner />
+              ) : (
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                  <AreaChart
+                    responsive
+                    data={countByHour}
+                    margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
+                    style={{ overflow: "visible" }}
+                  >
+                    <CartesianGrid />
+                    {showUnfiltered ? (
+                      <Line dataKey="unfiltered" name="Total" />
+                    ) : (
+                      <></>
+                    )}
+                    {data.filtered ? (
+                      <Area dataKey="filtered" name="Filtered" />
+                    ) : (
+                      <></>
+                    )}
+                    <XAxis
+                      dataKey="hour"
+                      tickFormatter={(v) => hourFormatter.format(new Date(v))}
+                    />
+                    <YAxis width="auto" niceTicks="snap125" />
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                      labelFormatter={(v) => hourFormatter.format(new Date(v))}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -177,14 +182,6 @@ function Graphs({
     refreshInterval: 5000,
     revalidateIfStale: false,
   });
-
-  if (error) return <div>failed to load</div>;
-  /*if (isLoading)
-    return (
-      <div>
-        <Spinner />
-      </div>
-    );*/
 
   const countByMonth = data?.unfiltered?.countByMonth.map((item, index) => ({
     date: item.date,
@@ -213,78 +210,96 @@ function Graphs({
       <Card className="grow-1">
         <CardHeader>Monthly</CardHeader>
         <CardContent className="h-64 w-full lg:h-72">
-          {isLoading ? (
-            <Spinner />
+          {error ? (
+            <>failed to load</>
           ) : (
-            <ChartContainer config={chartConfig} className="h-full w-full">
-              <AreaChart
-                responsive
-                data={countByMonth}
-                margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
-                style={{ overflow: "visible" }}
-              >
-                <CartesianGrid />
-                {showUnfiltered ? (
-                  <Line dataKey="unfiltered" name="Total" />
-                ) : (
-                  <></>
-                )}
-                {data.filtered ? (
-                  <Area dataKey="filtered" name="Filtered" />
-                ) : (
-                  <></>
-                )}
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(v) => monthFormatter.format(new Date(v))}
-                  width="auto" 
-                />
-                <YAxis tickFormatter={compactNumberFormatter.format} niceTicks="snap125"/>
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                  labelFormatter={(v) => monthFormatter.format(new Date(v))}
-                />
-              </AreaChart>
-            </ChartContainer>
+            <>
+              {isLoading ? (
+                <Spinner />
+              ) : (
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                  <AreaChart
+                    responsive
+                    data={countByMonth}
+                    margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
+                    style={{ overflow: "visible" }}
+                  >
+                    <CartesianGrid />
+                    {showUnfiltered ? (
+                      <Line dataKey="unfiltered" name="Total" />
+                    ) : (
+                      <></>
+                    )}
+                    {data.filtered ? (
+                      <Area dataKey="filtered" name="Filtered" />
+                    ) : (
+                      <></>
+                    )}
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(v) => monthFormatter.format(new Date(v))}
+                      width="auto"
+                    />
+                    <YAxis
+                      tickFormatter={compactNumberFormatter.format}
+                      niceTicks="snap125"
+                    />
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                      labelFormatter={(v) => monthFormatter.format(new Date(v))}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
       <Card className="grow-6">
         <CardHeader>Daily</CardHeader>
         <CardContent className="h-64 w-full lg:h-72">
-          {isLoading ? (
-            <Spinner />
+          {error ? (
+            <>failed to load</>
           ) : (
-            <ChartContainer config={chartConfig} className="h-full w-full">
-              <AreaChart
-                responsive
-                data={countByDay}
-                margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
-                style={{ overflow: "visible" }}
-              >
-                <CartesianGrid />
-                {showUnfiltered ? (
-                  <Line dataKey="unfiltered" name="Total" />
-                ) : (
-                  <></>
-                )}
-                {data.filtered ? (
-                  <Area dataKey="filtered" name="Filtered" />
-                ) : (
-                  <></>
-                )}
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(v) => dayFormatter.format(new Date(v))}
-                  width="auto" 
-                />
-                <YAxis tickFormatter={compactNumberFormatter.format} niceTicks="snap125"/>
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                  labelFormatter={(v) => dayFormatter.format(new Date(v))}
-                />
-              </AreaChart>
-            </ChartContainer>
+            <>
+              {isLoading ? (
+                <Spinner />
+              ) : (
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                  <AreaChart
+                    responsive
+                    data={countByDay}
+                    margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
+                    style={{ overflow: "visible" }}
+                  >
+                    <CartesianGrid />
+                    {showUnfiltered ? (
+                      <Line dataKey="unfiltered" name="Total" />
+                    ) : (
+                      <></>
+                    )}
+                    {data.filtered ? (
+                      <Area dataKey="filtered" name="Filtered" />
+                    ) : (
+                      <></>
+                    )}
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(v) => dayFormatter.format(new Date(v))}
+                      width="auto"
+                    />
+                    <YAxis
+                      tickFormatter={compactNumberFormatter.format}
+                      niceTicks="snap125"
+                    />
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                      labelFormatter={(v) => dayFormatter.format(new Date(v))}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -334,17 +349,20 @@ export default function Home() {
   };
 
   const mods = [
-    {name: "Reduction", types: ["DC", "EZ", "NF", "HT"]},
-    {name: "Increase", types:  ["HR", "SD", "PF", "DT", "NC", "HD", "TC", "FL", "BL", "ST", "AC"]},
-    {name: "Automation", types:  ["AP", "RX", "SO"]},
-    {name: "Conversion", types:  ["TP", "DA", "CL", "RD", "MR", "AL", "SG"]},
-    {name: "Fun", types:  ["BR",/* ... */ "MU"]},
-    {name: "Other", types:  ["TD"]}
-  ]
+    { name: "Reduction", types: ["DC", "EZ", "NF", "HT"] },
+    {
+      name: "Increase",
+      types: ["HR", "SD", "PF", "DT", "NC", "HD", "TC", "FL", "BL", "ST", "AC"],
+    },
+    { name: "Automation", types: ["AP", "RX", "SO"] },
+    { name: "Conversion", types: ["TP", "DA", "CL", "RD", "MR", "AL", "SG"] },
+    { name: "Fun", types: ["BR", /* ... */ "MU"] },
+    { name: "Other", types: ["TD"] },
+  ];
 
   return (
     <>
-      <div className="flex flex-wrap">
+      <div className="flex">
         <Card className="min-w-fit">
           <CardContent>
             <h1>osu! stats</h1>
@@ -384,7 +402,7 @@ export default function Home() {
             </ButtonGroup>
           </CardContent>
         </Card>
-        <Card className="max-w-lg min-w-52 flex-none">
+        <Card className="w-full min-w-52">
           <FieldGroup className="mx-4">
             <Field orientation="horizontal">
               <Checkbox
@@ -398,7 +416,7 @@ export default function Home() {
             </Field>
           </FieldGroup>
         </Card>
-</div>
+      </div>
       <div className="flex">
         <Card className="w-1/2">
           <Collapsible>
@@ -409,20 +427,33 @@ export default function Home() {
               <CollapsibleContent className="w-fit">
                 <table>
                   <tbody>
-                  {mods.map((category)=>{
-                    return (
-                    <tr>
-                      <th className="px-2">{category.name}</th>
-                      <div className="flex flex-wrap">
-                      { category.types.map((mod: string) => {
-                        return (<td>
-                          <Button className="w-12" variant={ modsInclude.includes(mod) ? "secondary" : "outline" } value={mod} onClick={handleModIncludeChange}>{mod}</Button>
-                        </td>)
-                        })
-                      }
-                      </div>
-                    </tr>)}
-                  )}
+                    {mods.map((category) => {
+                      return (
+                        <tr>
+                          <th className="px-2">{category.name}</th>
+                          <div className="flex flex-wrap">
+                            {category.types.map((mod: string) => {
+                              return (
+                                <td>
+                                  <Button
+                                    className="w-12"
+                                    variant={
+                                      modsInclude.includes(mod)
+                                        ? "secondary"
+                                        : "outline"
+                                    }
+                                    value={mod}
+                                    onClick={handleModIncludeChange}
+                                  >
+                                    {mod}
+                                  </Button>
+                                </td>
+                              );
+                            })}
+                          </div>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </CollapsibleContent>
@@ -438,20 +469,33 @@ export default function Home() {
               <CollapsibleContent>
                 <table>
                   <tbody>
-                  {mods.map((category)=>{
-                    return (
-                    <tr>
-                      <th className="px-2">{category.name}</th>
-                      <div className="flex flex-wrap">
-                      { category.types.map((mod: string) => {
-                        return (<td>
-                          <Button className="w-12" variant={ modsExclude.includes(mod) ? "secondary" : "outline" } value={mod} onClick={handleModExcludeChange}>{mod}</Button>
-                        </td>)
-                        })
-                      }
-                      </div>
-                    </tr>)}
-                  )}
+                    {mods.map((category) => {
+                      return (
+                        <tr>
+                          <th className="px-2">{category.name}</th>
+                          <div className="flex flex-wrap">
+                            {category.types.map((mod: string) => {
+                              return (
+                                <td>
+                                  <Button
+                                    className="w-12"
+                                    variant={
+                                      modsExclude.includes(mod)
+                                        ? "secondary"
+                                        : "outline"
+                                    }
+                                    value={mod}
+                                    onClick={handleModExcludeChange}
+                                  >
+                                    {mod}
+                                  </Button>
+                                </td>
+                              );
+                            })}
+                          </div>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </CollapsibleContent>
