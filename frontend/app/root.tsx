@@ -42,6 +42,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="container mx-auto px-2 py-8">
         <main>{children}</main>
+        <footer className="py-1 text-right text-xs text-white/40">
+          <a href="https://osu.ppy.sh/users/7217455">Made by StanR</a> |{" "}
+          <a href="https://github.com/stanriders/osustats">Source code</a> |{" "}
+          <a href="https://ko-fi.com/stanr">Donate ❤</a>
+        </footer>
         <ScrollRestoration />
         <Scripts />
       </body>
