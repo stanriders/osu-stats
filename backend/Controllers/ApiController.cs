@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using osuStats.Database;
 using osuStats.OsuApi.Models;
 using System.Globalization;
+using System.Text.Json;
 using Score = osuStats.Database.Models.Score;
 
 namespace osuStats.Controllers;
@@ -24,7 +25,7 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
         if (hourlyDate != null)
         {
             // make sure we take all 24 hours if a date is set
-            hourlyDate = hourlyDate.Value.AddHours(1);
+            hourlyDate = hourlyDate.Value.AddDays(1);
         }
         else
         {
@@ -32,7 +33,7 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
             hourlyDate = DateTime.UtcNow.AddHours(-1);
         }
 
-        hourlyDate = new DateTime(hourlyDate.Value.Year, hourlyDate.Value.Month, hourlyDate.Value.Day, hourlyDate.Value.Hour, 0, 0, hourlyDate.Value.Kind);
+        hourlyDate = new DateTime(hourlyDate.Value.Year, hourlyDate.Value.Month, hourlyDate.Value.Day, hourlyDate.Value.Hour, 0, 0, DateTimeKind.Utc);
 
         query = query.Where(x => x.Date >= hourlyDate.Value.AddDays(-1))
             .Where(x => x.Date < hourlyDate.Value);
@@ -53,18 +54,18 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
 
         if (modsInclude != null && modsInclude.Length > 0)
         {
-            query = query.Where(s => EF.Functions.JsonContains(
-                s.Mods,
-                @$"[{string.Join(',', modsInclude.Select(x => $"{{ \"Acronym\": \"{x}\" }}"))}]"
-            ));
+            var modsIncludeJson = JsonSerializer.Serialize(modsInclude.Select(x => new { Acronym = x }));
+            query = query.Where(s => EF.Functions.JsonContains(s.Mods, modsIncludeJson));
         }
 
         if (modsExclude != null && modsExclude.Length > 0)
         {
-            query = query.Where(s => !EF.Functions.JsonContains(
-                s.Mods,
-                @$"[{string.Join(',', modsExclude.Select(x => $"{{ \"Acronym\": \"{x}\" }}"))}]"
-            ));
+            // one check per mod, otherwise it only excludes scores that have all of them at once
+            foreach (var mod in modsExclude)
+            {
+                var modJson = JsonSerializer.Serialize(new[] { new { Acronym = mod } });
+                query = query.Where(s => !EF.Functions.JsonContains(s.Mods, modJson));
+            }
         }
 
         /*
@@ -105,18 +106,18 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
 
         if (modsInclude != null && modsInclude.Length > 0)
         {
-            query = query.Where(s => EF.Functions.JsonContains(
-                s.Mods,
-                @$"[{string.Join(',', modsInclude.Select(x => $"{{ \"Acronym\": \"{x}\" }}"))}]"
-            ));
+            var modsIncludeJson = JsonSerializer.Serialize(modsInclude.Select(x => new { Acronym = x }));
+            query = query.Where(s => EF.Functions.JsonContains(s.Mods, modsIncludeJson));
         }
 
         if (modsExclude != null && modsExclude.Length > 0)
         {
-            query = query.Where(s => !EF.Functions.JsonContains(
-                s.Mods,
-                @$"[{string.Join(',', modsExclude.Select(x => $"{{ \"Acronym\": \"{x}\" }}"))}]"
-            ));
+            // one check per mod, otherwise it only excludes scores that have all of them at once
+            foreach (var mod in modsExclude)
+            {
+                var modJson = JsonSerializer.Serialize(new[] { new { Acronym = mod } });
+                query = query.Where(s => !EF.Functions.JsonContains(s.Mods, modJson));
+            }
         }
 
         /*
