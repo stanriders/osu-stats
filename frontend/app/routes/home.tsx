@@ -36,7 +36,11 @@ export function meta() {
 
 const chartConfig = {} satisfies ChartConfig;
 
-const fetcher = (...args: any[]) => fetch(...args).then((res) => res.json());
+const fetcher = (...args: any[]) =>
+  fetch(...args).then((res) => {
+    if (!res.ok) throw new Error(res.statusText);
+    return res.json();
+  });
 
 function Hourly({
   query,
@@ -45,20 +49,20 @@ function Hourly({
   query: string;
   showUnfiltered: boolean;
 }) {
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState<Date | undefined>(undefined);
   const { data, error, isLoading } = useSWR(
-    `${ApiBase}/hourly?hourlyDate=${date.toISOString()}&${query}`,
+    `${ApiBase}/hourly?${date ? `hourlyDate=${date.toISOString()}&` : ""}${query}`,
     fetcher,
     { refreshInterval: 5000, revalidateIfStale: false },
   );
 
-  const countByHour = data?.unfiltered?.countByHour.map((item, index) => ({
+  const countByHour = data?.unfiltered?.countByHour.map((item) => ({
     hour: item.hour,
     unfiltered: item.count,
-    filtered:
-      data.filtered?.countByHour.length > 0
-        ? data.filtered.countByHour[index]?.count
-        : null,
+    filtered: data.filtered
+      ? (data.filtered.countByHour.find((x) => x.hour === item.hour)?.count ??
+        0)
+      : null,
   }));
 
   const hourFormatter = new Intl.DateTimeFormat(undefined, { hour: "numeric" });
@@ -157,7 +161,9 @@ function Hourly({
                   <div className="flex w-full">
                     <span className="grow">Average pp</span>
                     <span className="grow text-right font-semibold">
-                      {dec.format(stats.averagePp)}pp
+                      {stats.averagePp != null
+                        ? `${dec.format(stats.averagePp)}pp`
+                        : "-"}
                     </span>
                   </div>
                 </CardContent>
@@ -241,16 +247,21 @@ function Graphs({
     revalidateIfStale: false,
   });
 
-  const countByMonth = data?.unfiltered?.countByMonth.map((item, index) => ({
+  const countByMonth = data?.unfiltered?.countByMonth.map((item) => ({
     date: item.date,
     unfiltered: item.count,
-    filtered: data.filtered?.countByMonth[index]?.count,
+    filtered: data.filtered
+      ? (data.filtered.countByMonth.find((x) => x.date === item.date)?.count ??
+        0)
+      : null,
   }));
 
-  const countByDay = data?.unfiltered?.countByDay.map((item, index) => ({
+  const countByDay = data?.unfiltered?.countByDay.map((item) => ({
     date: item.date,
     unfiltered: item.count,
-    filtered: data.filtered?.countByDay[index]?.count,
+    filtered: data.filtered
+      ? (data.filtered.countByDay.find((x) => x.date === item.date)?.count ?? 0)
+      : null,
   }));
 
   const compactNumberFormatter = new Intl.NumberFormat(undefined, {
@@ -260,6 +271,7 @@ function Graphs({
   const dayFormatter = new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
   const monthFormatter = new Intl.DateTimeFormat(undefined, { month: "long" });
 
@@ -421,10 +433,11 @@ export default function Home() {
   if (query == "" && !showUnfiltered) setShowUnfiltered(true);
 
   const handleRulesetChange = (e: any) => {
-    if (e.target.value == ruleset) {
+    const value = Number(e.target.value);
+    if (value == ruleset) {
       setRuleset(null);
     } else {
-      setRuleset(e.target.value);
+      setRuleset(value);
     }
   };
 
@@ -531,14 +544,14 @@ export default function Home() {
               <PopoverContent className="w-auto" align="start">
                 {mods.map((category) => {
                   return (
-                    <div className="flex items-center">
+                    <div key={category.name} className="flex items-center">
                       <div className={`px-2 ${category.color} min-w-26`}>
                         {category.name}
                       </div>
                       <div className="flex flex-wrap">
                         {category.types.map((mod: string) => {
                           return (
-                            <td>
+                            <div key={mod}>
                               <Button
                                 className="w-12"
                                 variant={
@@ -551,7 +564,7 @@ export default function Home() {
                               >
                                 {mod}
                               </Button>
-                            </td>
+                            </div>
                           );
                         })}
                       </div>
@@ -572,14 +585,14 @@ export default function Home() {
               <PopoverContent className="w-auto" align="start">
                 {mods.map((category) => {
                   return (
-                    <div className="flex items-center">
+                    <div key={category.name} className="flex items-center">
                       <div className={`px-2 ${category.color} min-w-26`}>
                         {category.name}
                       </div>
                       <div className="flex flex-wrap">
                         {category.types.map((mod: string) => {
                           return (
-                            <td>
+                            <div key={mod}>
                               <Button
                                 className="w-12"
                                 variant={
@@ -592,7 +605,7 @@ export default function Home() {
                               >
                                 {mod}
                               </Button>
-                            </td>
+                            </div>
                           );
                         })}
                       </div>
