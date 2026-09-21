@@ -20,16 +20,23 @@ public class ScoresService(
     {
         var currentCursor = 0L;
 
-        var cursorResponse = await osuApiProvider.GetScores(null);
-        if (cursorResponse == null)
+        try
         {
-            logger.LogWarning("Couldn't get current max score id!");
+            var cursorResponse = await osuApiProvider.GetScores(null);
+            if (cursorResponse == null || cursorResponse.Scores.Count == 0)
+            {
+                logger.LogWarning("Couldn't get current max score id!");
+            }
+            else
+            {
+                // catch up on the potentially missed scores while we were offline
+                // 200k scores is ~an hour of scores which is getting processed in ~3.5 minutes
+                currentCursor = cursorResponse.Scores.Max(x => x.Id) - 200_000;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            // catch up on the potentially missed scores while we were offline
-            // 200k scores is ~an hour of scores which is getting processed in ~3.5 minutes
-            currentCursor = cursorResponse.Scores.OrderByDescending(x => x.Id).First().Id - 200_000;
+            logger.LogError(ex, "Couldn't get current max score id! {Message}", ex.Message);
         }
 
         while (!stoppingToken.IsCancellationRequested)
@@ -51,7 +58,8 @@ public class ScoresService(
                     .OrderByDescending(x => x)
                     .FirstOrDefaultAsync(stoppingToken);
 
-                if (currentCursor == 0)
+                // never start ahead of what we already have
+                if (currentCursor == 0 || (currentMaxScoreId != 0 && currentCursor > currentMaxScoreId))
                 {
                     currentCursor = currentMaxScoreId;
                 }
