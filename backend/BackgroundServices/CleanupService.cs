@@ -30,24 +30,39 @@ public class CleanupService(IServiceScopeFactory serviceScopeFactory, ILogger<Cl
 
                     var partitionName = $"Scores_{date:yyyy_MM_dd}";
 
-                    await context.Database.ExecuteSqlRawAsync($"""
-                                                               CREATE TABLE IF NOT EXISTS "{partitionName}"
-                                                               PARTITION OF "Scores"
-                                                               FOR VALUES FROM ('{date:yyyy-MM-dd}')
-                                                               TO ('{nextDate:yyyy-MM-dd}');
-                                                               """, stoppingToken);
+                    try
+                    {
+                        await context.Database.ExecuteSqlRawAsync($"""
+                                                                   CREATE TABLE IF NOT EXISTS "{partitionName}"
+                                                                   PARTITION OF "Scores"
+                                                                   FOR VALUES FROM ('{date:yyyy-MM-dd}')
+                                                                   TO ('{nextDate:yyyy-MM-dd}');
+                                                                   """, stoppingToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Couldn't create partition {Partition}! {Message}", partitionName, ex.Message);
+                    }
                 }
 
                 logger.LogInformation("Added score partitions from {Start} to {End}", today, today.AddDays(7));
 
                 var outdated = today.AddMonths(-3);
 
-                for (var i = -7; i <= 0; i++)
+                // wide window so partitions aren't leaked if we missed a few days
+                for (var i = -31; i <= 0; i++)
                 {
                     var date = outdated.AddDays(i);
                     var partitionName = $"Scores_{date:yyyy_MM_dd}";
 
-                    await context.Database.ExecuteSqlRawAsync($"DROP TABLE IF EXISTS \"{partitionName}\";", stoppingToken);
+                    try
+                    {
+                        await context.Database.ExecuteSqlRawAsync($"DROP TABLE IF EXISTS \"{partitionName}\";", stoppingToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Couldn't drop partition {Partition}! {Message}", partitionName, ex.Message);
+                    }
                 }
 
                 logger.LogInformation("Deleted score partitions older than {Date}", outdated);
