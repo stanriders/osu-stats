@@ -85,19 +85,11 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] int? rulesetId, [FromQuery] string[]? modsInclude, [FromQuery] string[]? modsExclude, [FromQuery] bool? hasSettings)
     {
-        var query = databaseContext.Scores.AsNoTracking().Where(x=> x.Date < DateTime.UtcNow); // exclude future partitions
+        var unfiltered = await GetUnfilteredStats();
 
-        var date = DateTime.UtcNow;
-        date = new DateTime(date.Year, date.Month, date.Day, date.Hour, 0, 0, date.Kind);
+        var anyFiltersEnabled = rulesetId != null || modsInclude is { Length: > 0 } || modsExclude is { Length: > 0 } /*|| hasSettings != null*/;
 
-        var key = $"unfiltered_daily_{date.ToString(CultureInfo.InvariantCulture)}";
-        if (!cache.TryGetValue(key, out var unfiltered))
-        {
-            unfiltered = await GetStats(query);
-            cache.Set(key, unfiltered, TimeSpan.FromMinutes(10));
-        }
-
-        bool anyFiltersEnabled = rulesetId != null || modsInclude is { Length: > 0 } || modsExclude is { Length: > 0 } /*|| hasSettings != null*/;
+        var query = databaseContext.Scores.AsNoTracking().Where(x => x.Date < DateTime.UtcNow); // exclude future partitions
 
         if (rulesetId != null)
         {
@@ -178,6 +170,49 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
             .OrderBy(x => x.Key)
             .Select(g => new DailyCount(g.Key, g.Count()))
             .ToListAsync();
+
+        var countByMonth = countByDay
+            .GroupBy(x => new { x.Date.Year, x.Date.Month })
+            .OrderBy(x => x.Key.Year)
+            .ThenBy(x => x.Key.Month)
+            .Select(g => new MonthlyCount(new DateTime(g.Key.Year, g.Key.Month, 1), g.Sum(x => x.Count)))
+            .ToList();
+
+        return new Stats(countByMonth, countByDay);
+    }
+
+    private async Task<Stats> GetUnfilteredStats()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var oldest = await databaseContext.DailyAggregates.MinAsync(x => x.Date);
+
+        var aggregated = await databaseContext.DailyAggregates
+            .Where(x => x.Date >= oldest && x.Date < today)
+            .Select(x => new DailyCount(x.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), (int)x.Count))
+            .ToListAsync();
+
+        var aggregatedDates = aggregated.Select(x => DateOnly.FromDateTime(x.Date)).ToHashSet();
+
+        var missingDays = Enumerable.Range(0, today.DayNumber - oldest.DayNumber + 1)
+            .Select(offset => oldest.AddDays(offset))
+            .Where(d => !aggregatedDates.Contains(d))
+            .ToList();
+
+        if (missingDays.Count > 0)
+        {
+            var start = DateTime.SpecifyKind(missingDays.Min().ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            var end = DateTime.SpecifyKind(missingDays.Max().AddDays(1).ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+
+            var live = await databaseContext.Scores.AsNoTracking()
+                .Where(s => s.Date >= start && s.Date < end)
+                .GroupBy(s => s.Date.Date)
+                .Select(g => new DailyCount(g.Key, g.Count()))
+                .ToListAsync();
+
+            aggregated.AddRange(live);
+        }
+
+        var countByDay = aggregated.OrderBy(x => x.Date).ToList();
 
         var countByMonth = countByDay
             .GroupBy(x => new { x.Date.Year, x.Date.Month })

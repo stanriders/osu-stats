@@ -9,10 +9,12 @@ public class DatabaseContext : DbContext
 
     private DatabaseContext() { }
     public DbSet<Score> Scores { get; set; } = null!;
+    public DbSet<DailyAggregate> DailyAggregates { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Score>().ToTable("Scores");
+        modelBuilder.Entity<DailyAggregate>().ToTable("DailyAggregates");
 
         modelBuilder.Entity<Score>().HasIndex(x => x.Pp);
         modelBuilder.Entity<Score>().HasIndex(x => x.Mode);
@@ -36,6 +38,9 @@ public class DatabaseContext : DbContext
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                 v => System.Text.Json.JsonSerializer.Deserialize<List<Mod>>(v, (System.Text.Json.JsonSerializerOptions?)null)!
             );
+
+        modelBuilder.Entity<DailyAggregate>()
+            .HasKey(x => new { x.Date });
 
         base.OnModelCreating(modelBuilder);
     }

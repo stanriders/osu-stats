@@ -60,6 +60,7 @@ builder.Services.AddSingleton<IOsuApiProvider, OsuApiProvider>();
 
 builder.Services.AddHostedService<ScoresService>();
 builder.Services.AddHostedService<CleanupService>();
+builder.Services.AddHostedService<DailyAggregateFoldService>();
 
 var app = builder.Build();
 
