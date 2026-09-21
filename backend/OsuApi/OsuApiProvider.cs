@@ -33,6 +33,10 @@ public class OsuApiProvider : IOsuApiProvider
     public async Task<ScoresResponse?> GetScores(long? cursor)
     {
         await RefreshUserlessToken();
+        if (_userlessToken == null)
+        {
+            return null;
+        }
 
         var cursorString =
             cursor == null ? "" : Convert.ToBase64String(Encoding.Default.GetBytes($"{{\"id\": {cursor}}}"));
@@ -41,7 +45,7 @@ public class OsuApiProvider : IOsuApiProvider
         {
             Method = HttpMethod.Get,
             RequestUri = new Uri(osu_base + string.Format(api_scores_link, cursorString)),
-            Headers = { Authorization = new AuthenticationHeaderValue("Bearer", _userlessToken!.AccessToken) }
+            Headers = { Authorization = new AuthenticationHeaderValue("Bearer", _userlessToken.AccessToken) }
         };
         requestMessage.Headers.Add("x-api-version", "99999999");
 
