@@ -21,7 +21,11 @@ export default function ModsPopover({
           <span>{name}</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="center" collisionPadding={8} className="max-h-(--radix-popover-content-available-height) max-w-[min(50rem,var(--radix-popover-content-available-width))] min-w-[min(25rem,var(--radix-popover-content-available-width))] overflow-y-auto">
+      <PopoverContent
+        align="center"
+        collisionPadding={8}
+        className="max-h-(--radix-popover-content-available-height) max-w-[min(50rem,var(--radix-popover-content-available-width))] min-w-[min(25rem,var(--radix-popover-content-available-width))] overflow-y-auto"
+      >
         {Mods.filter((x) =>
           ruleset != null
             ? x.types.some((m) => m.rulesets.indexOf(ruleset) != -1)

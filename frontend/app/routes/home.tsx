@@ -42,14 +42,17 @@ function Hourly({
   calendarRangeStart.setMonth(calendarRangeStart.getMonth() - 3);
   const calendarRangeEnd = new Date();
 
-  const countByHour = data?.unfiltered?.countByHour.map((item) => ({
-    hour: item.hour,
-    unfiltered: item.count,
-    filtered: data.filtered
-      ? (data.filtered.countByHour.find((x) => x.hour === item.hour)?.count ??
-        0)
-      : null,
-  }));
+  const countByHour = data?.unfiltered?.countByHour.map(
+    (item: { hour: any; count: any }) => ({
+      hour: item.hour,
+      unfiltered: item.count,
+      filtered: data.filtered
+        ? (data.filtered.countByHour.find(
+            (x: { hour: any }) => x.hour === item.hour,
+          )?.count ?? 0)
+        : null,
+    }),
+  );
 
   const hourFormatter = new Intl.DateTimeFormat(undefined, { hour: "numeric" });
 
@@ -238,22 +241,29 @@ function Graphs({
     revalidateIfStale: false,
   });
 
-  const countByMonth = data?.unfiltered?.countByMonth.map((item) => ({
-    date: item.date,
-    unfiltered: item.count,
-    filtered: data.filtered
-      ? (data.filtered.countByMonth.find((x) => x.date === item.date)?.count ??
-        0)
-      : null,
-  }));
+  const countByMonth = data?.unfiltered?.countByMonth.map(
+    (item: { date: any; count: any }) => ({
+      date: item.date,
+      unfiltered: item.count,
+      filtered: data.filtered
+        ? (data.filtered.countByMonth.find(
+            (x: { date: any }) => x.date === item.date,
+          )?.count ?? 0)
+        : null,
+    }),
+  );
 
-  const countByDay = data?.unfiltered?.countByDay.map((item) => ({
-    date: item.date,
-    unfiltered: item.count,
-    filtered: data.filtered
-      ? (data.filtered.countByDay.find((x) => x.date === item.date)?.count ?? 0)
-      : null,
-  }));
+  const countByDay = data?.unfiltered?.countByDay.map(
+    (item: { date: any; count: any }) => ({
+      date: item.date,
+      unfiltered: item.count,
+      filtered: data.filtered
+        ? (data.filtered.countByDay.find(
+            (x: { date: any }) => x.date === item.date,
+          )?.count ?? 0)
+        : null,
+    }),
+  );
 
   const compactNumberFormatter = new Intl.NumberFormat(undefined, {
     notation: "compact",
