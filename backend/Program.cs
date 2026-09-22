@@ -44,16 +44,23 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 
-builder.Services.AddRateLimiter(_ => _
-    .AddTokenBucketLimiter("token", options =>
-    {
-        options.TokenLimit = 3;
-        options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        options.QueueLimit = 2;
-        options.ReplenishmentPeriod = TimeSpan.FromSeconds(5);
-        options.TokensPerPeriod = 1;
-        options.AutoReplenishment = true;
-    }));
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("token", context =>
+        RateLimitPartition.GetTokenBucketLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new TokenBucketRateLimiterOptions
+            {
+                TokenLimit = 30,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 20,
+                ReplenishmentPeriod = TimeSpan.FromSeconds(1),
+                TokensPerPeriod = 1,
+                AutoReplenishment = true
+            }));
+});
 
 builder.Services.AddHttpClient<OsuApiProvider>();
 builder.Services.AddSingleton<IOsuApiProvider, OsuApiProvider>();
@@ -64,9 +71,9 @@ builder.Services.AddHostedService<DailyAggregateFoldService>();
 
 var app = builder.Build();
 
-app.UseSerilogRequestLogging();
-
 app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.All });
+
+app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
