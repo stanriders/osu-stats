@@ -66,7 +66,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </Tooltip.Provider>
         <footer className="py-1 text-right text-xs text-white/40">
           <a href="https://osu.ppy.sh/users/7217455">Made by StanR</a> |{" "}
-          <a href="https://github.com/stanriders/osustats">Source code</a> |{" "}
+          <a href="https://github.com/stanriders/osu-stats">Source code</a> |{" "}
           <a href="https://ko-fi.com/stanr">Donate ❤</a>
         </footer>
         <ScrollRestoration />
