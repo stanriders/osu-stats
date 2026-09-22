@@ -148,9 +148,9 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
                 AverageAccuracy = g.Average(x => x.Accuracy),
                 AverageCombo = g.Average(x => x.Combo),
                 AveragePp = g.Where(x => x.Pp != null).Select(x => x.Pp).Average(),
-                MaxPp = g.Where(x => x.Pp != null).OrderByDescending(x=> x.Pp).First(),
-                MostPopularBeatmap = g.GroupBy(x=> x.BeatmapId).OrderByDescending(x => x.Count()).Select(x=> new {x.Key, count = x.Count()}).First(),
-                MostPopularUser = g.GroupBy(x => x.UserId).OrderByDescending(x => x.Count()).Select(x => new { x.Key, count = x.Count() }).First()
+                MaxPp = g.Where(x => x.Pp != null).OrderByDescending(x=> x.Pp).FirstOrDefault(),
+                MostPopularBeatmap = g.GroupBy(x=> x.BeatmapId).OrderByDescending(x => x.Count()).Select(x=> new {x.Key, count = x.Count()}).FirstOrDefault(),
+                MostPopularUser = g.GroupBy(x => x.UserId).OrderByDescending(x => x.Count()).Select(x => new { x.Key, count = x.Count() }).FirstOrDefault()
             })
             .SingleOrDefaultAsync();
 
@@ -163,12 +163,12 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
             aggregate?.AverageAccuracy ?? 0,
             aggregate?.AverageCombo ?? 0,
             aggregate?.AveragePp,
-            aggregate?.MaxPp.Pp,
-            aggregate?.MaxPp.Id,
-            aggregate?.MostPopularBeatmap.Key ?? 0,
-            aggregate?.MostPopularBeatmap.count ?? 0,
-            aggregate?.MostPopularUser.Key ?? 0,
-            aggregate?.MostPopularUser.count ?? 0,
+            aggregate?.MaxPp?.Pp,
+            aggregate?.MaxPp?.Id,
+            aggregate?.MostPopularBeatmap?.Key ?? 0,
+            aggregate?.MostPopularBeatmap?.count ?? 0,
+            aggregate?.MostPopularUser?.Key ?? 0,
+            aggregate?.MostPopularUser?.count ?? 0,
             countByHour);
     }
 
@@ -245,9 +245,9 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
         double? AveragePp,
         double? MaxPp,
         long? MaxPpScoreId,
-        int MostPopularBeatmapId,
+        int? MostPopularBeatmapId,
         int MostPopularBeatmapIdPlaycount,
-        int MostPopularUserId,
+        int? MostPopularUserId,
         int MostPopularUserIdPlaycount,
         List<HourlyCount> CountByHour);
 

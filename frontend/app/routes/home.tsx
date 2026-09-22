@@ -12,11 +12,6 @@ import { Button } from "~/components/ui/button";
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "~/components/ui/collapsible";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -26,6 +21,8 @@ import { format } from "date-fns";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { ApiBase } from "~/lib/api";
+import { type Mod } from "~/lib/mods";
+import ModsPopover from "~/components/mods-popover";
 
 const chartConfig = {} satisfies ChartConfig;
 
@@ -454,21 +451,37 @@ function Graphs({
 
 export default function Home() {
   const [ruleset, setRuleset] = useState<number | null>(null);
-  const [modsInclude, setModsInclude] = useState<Array<string>>([]);
-  const [modsExclude, setModsExclude] = useState<Array<string>>([]);
+  const [modsInclude, setModsInclude] = useState<Array<Mod>>([]);
+  const [modsExclude, setModsExclude] = useState<Array<Mod>>([]);
   const [showUnfiltered, setShowUnfiltered] = useState<boolean>(true);
+  const [showModSettings, setShowModSettings] = useState<boolean>(false);
 
   let query = "";
   if (ruleset != null) query += `rulesetId=${ruleset}&`;
 
   if (modsInclude.length > 0) {
-    query += modsInclude.map((x) => `modsInclude=${x}&`).join("");
+    query += modsInclude
+      .filter((x) =>
+        ruleset != null ? x.rulesets.indexOf(ruleset) != -1 : true,
+      )
+      .map((x) => `modsInclude=${x.acronym}&`)
+      .join("");
   }
 
   if (modsExclude.length > 0) {
-    query += modsExclude.map((x) => `modsExclude=${x}&`).join("");
+    query += modsExclude
+      .filter((x) =>
+        ruleset != null ? x.rulesets.indexOf(ruleset) != -1 : true,
+      )
+      .map((x) => `modsExclude=${x.acronym}&`)
+      .join("");
   }
 
+  const hasMods = modsInclude.length > 0 || modsExclude.length > 0;
+
+  // reset to defaults if no filtering
+  if (!hasMods && showModSettings) setShowModSettings(false);
+  if (hasMods && showModSettings) query += `hasSettings=true&`;
   if (query == "" && !showUnfiltered) setShowUnfiltered(true);
 
   const handleRulesetChange = (e: any) => {
@@ -477,82 +490,31 @@ export default function Home() {
       setRuleset(null);
     } else {
       setRuleset(value);
+      setModsInclude((prev) => prev.filter((x) => x.rulesets.includes(value)));
+      setModsExclude((prev) => prev.filter((x) => x.rulesets.includes(value)));
     }
   };
 
-  const handleModIncludeChange = (e: any) => {
+  const handleModIncludeChange = (mod: Mod) => {
     setModsInclude((prev) =>
-      prev.includes(e.target.value)
-        ? prev.filter((item) => item !== e.target.value)
-        : [...prev, e.target.value],
+      prev.some((x) => x.acronym === mod.acronym)
+        ? prev.filter((x) => x.acronym !== mod.acronym)
+        : [...prev, mod],
     );
   };
 
-  const handleModExcludeChange = (e: any) => {
+  const handleModExcludeChange = (mod: Mod) => {
     setModsExclude((prev) =>
-      prev.includes(e.target.value)
-        ? prev.filter((item) => item !== e.target.value)
-        : [...prev, e.target.value],
+      prev.some((x) => x.acronym === mod.acronym)
+        ? prev.filter((x) => x.acronym !== mod.acronym)
+        : [...prev, mod],
     );
   };
-
-  const mods = [
-    {
-      name: "Reduction",
-      color: "text-mod-decrease",
-      types: ["EZ", "NF", "HT", "DC"],
-    },
-    {
-      name: "Increase",
-      color: "text-mod-increase",
-      types: ["HR", "SD", "PF", "DT", "NC", "HD", "TC", "FL", "BL", "ST", "AC"],
-    },
-    {
-      name: "Automation",
-      color: "text-mod-automation",
-      types: ["AP", "RX", "SO"],
-    },
-    {
-      name: "Conversion",
-      color: "text-mod-conversion",
-      types: ["TP", "DA", "CL", "RD", "MR", "AL", "SG"],
-    },
-    {
-      name: "Fun",
-      color: "text-mod-fun",
-      types: [
-        "TF",
-        "WG",
-        "SI",
-        "GR",
-        "DF",
-        "WU",
-        "WD",
-        "BR",
-        "AD",
-        "MU",
-        "NS",
-        "MG",
-        "RP",
-        "AS",
-        "FR",
-        "BU",
-        "SY",
-        "DP",
-        "BM",
-      ],
-    },
-    {
-      name: "Other",
-      color: "text-mod-other",
-      types: ["TD"],
-    },
-  ] as const;
 
   return (
     <>
       <div className="flex flex-wrap lg:flex-nowrap">
-        <Card className="min-w-fit">
+        <Card className="min-w-fit justify-center">
           <CardContent className="text-lg">scores!</CardContent>
         </Card>
         <Card className="min-w-fit">
@@ -589,110 +551,58 @@ export default function Home() {
             </ButtonGroup>
           </CardContent>
         </Card>
+        <Card className="grow md:hidden" />
         <Card className="min-w-fit">
           <CardContent>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={modsInclude.length > 0 ? "secondary" : "outline"}
-                  className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
-                >
-                  <span>Mods (include)</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto" align="start">
-                {mods.map((category) => {
-                  return (
-                    <div key={category.name} className="flex items-center">
-                      <div className={`px-2 ${category.color} min-w-26`}>
-                        {category.name}
-                      </div>
-                      <div className="flex flex-wrap">
-                        {category.types.map((mod: string) => {
-                          return (
-                            <div key={mod}>
-                              <Button
-                                className="w-12"
-                                variant={
-                                  modsInclude.includes(mod)
-                                    ? "secondary"
-                                    : "outline"
-                                }
-                                value={mod}
-                                onClick={handleModIncludeChange}
-                              >
-                                {mod}
-                              </Button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </PopoverContent>
-            </Popover>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={modsExclude.length > 0 ? "secondary" : "outline"}
-                  className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
-                >
-                  <span>Mods (exclude)</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto" align="start">
-                {mods.map((category) => {
-                  return (
-                    <div key={category.name} className="flex items-center">
-                      <div className={`px-2 ${category.color} min-w-26`}>
-                        {category.name}
-                      </div>
-                      <div className="flex flex-wrap">
-                        {category.types.map((mod: string) => {
-                          return (
-                            <div key={mod}>
-                              <Button
-                                className="w-12"
-                                variant={
-                                  modsExclude.includes(mod)
-                                    ? "secondary"
-                                    : "outline"
-                                }
-                                value={mod}
-                                onClick={handleModExcludeChange}
-                              >
-                                {mod}
-                              </Button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </PopoverContent>
-            </Popover>
+            <ModsPopover
+              ruleset={ruleset}
+              name="Mods (include)"
+              modsState={modsInclude}
+              modButtonHandler={handleModIncludeChange}
+            />
+            <ModsPopover
+              ruleset={ruleset}
+              name="Mods (exclude)"
+              modsState={modsExclude}
+              modButtonHandler={handleModExcludeChange}
+            />
           </CardContent>
         </Card>
-        <Card className="w-full min-w-52">
-          {query ? (
-            <FieldGroup className="mx-4">
-              <Field orientation="horizontal">
-                <Checkbox
-                  checked={showUnfiltered}
-                  onCheckedChange={setShowUnfiltered}
-                  id="show-unfiltered"
-                />
-                <FieldLabel htmlFor="show-unfiltered">
-                  Show unfiltered graph
-                </FieldLabel>
-              </Field>
-            </FieldGroup>
-          ) : (
-            <></>
-          )}
-        </Card>
+        <Card className="grow" />
+        {query ? (
+          <Card className="w-full min-w-52 justify-center">
+            <CardContent>
+              <FieldGroup className="gap-2">
+                <Field orientation="horizontal">
+                  <Checkbox
+                    checked={showUnfiltered}
+                    onCheckedChange={setShowUnfiltered}
+                    id="show-unfiltered"
+                  />
+                  <FieldLabel htmlFor="show-unfiltered">
+                    Show unfiltered graph
+                  </FieldLabel>
+                </Field>
+                {hasMods ? (
+                  <Field orientation="horizontal">
+                    <Checkbox
+                      checked={showModSettings}
+                      onCheckedChange={setShowModSettings}
+                      id="show-mod-settings"
+                    />
+                    <FieldLabel htmlFor="show-mod-settings">
+                      Only non-standard mod settings
+                    </FieldLabel>
+                  </Field>
+                ) : (
+                  <></>
+                )}
+              </FieldGroup>
+            </CardContent>
+          </Card>
+        ) : (
+          <></>
+        )}
       </div>
       <Graphs query={query} showUnfiltered={showUnfiltered} />
       <Hourly query={query} showUnfiltered={showUnfiltered} />

@@ -10,6 +10,7 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { Card, CardContent, CardHeader } from "./components/ui/card";
+import { Tooltip } from "radix-ui";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -60,7 +61,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         ></script>
       </head>
       <body className="container mx-auto px-2 py-8">
-        <main>{children}</main>
+        <Tooltip.Provider delayDuration={100}>
+          <main>{children}</main>
+        </Tooltip.Provider>
         <footer className="py-1 text-right text-xs text-white/40">
           <a href="https://osu.ppy.sh/users/7217455">Made by StanR</a> |{" "}
           <a href="https://github.com/stanriders/osustats">Source code</a> |{" "}
