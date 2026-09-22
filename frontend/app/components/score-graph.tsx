@@ -32,7 +32,7 @@ export default function ScoreGraph({
       <AreaChart
         responsive
         data={data}
-        margin={{ right: 30 }}
+        margin={{ left: 5, right: 30 }}
         style={{ overflow: "visible" }}
       >
         <CartesianGrid />
@@ -65,7 +65,11 @@ export default function ScoreGraph({
           tickFormatter={(v) => xAxisFormatter.format(new Date(v))}
           width="auto"
         />
-        <YAxis tickFormatter={yAxisFormatter?.format} niceTicks="snap125" />
+        <YAxis
+          tickFormatter={yAxisFormatter?.format}
+          niceTicks="snap125"
+          width="auto"
+        />
         <ChartTooltip
           content={<ChartTooltipContent />}
           labelFormatter={(v) => tooltipFormatter.format(new Date(v))}
