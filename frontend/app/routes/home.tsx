@@ -56,6 +56,10 @@ function Hourly({
     { refreshInterval: 5000, revalidateIfStale: false },
   );
 
+  const calendarRangeStart = new Date();
+  calendarRangeStart.setMonth(calendarRangeStart.getMonth() - 3);
+  const calendarRangeEnd = new Date();
+
   const countByHour = data?.unfiltered?.countByHour.map((item) => ({
     hour: item.hour,
     unfiltered: item.count,
@@ -77,7 +81,7 @@ function Hourly({
 
   return (
     <div className="flex flex-wrap">
-      <Card className="grow-1">
+      <Card className="min-w-fit grow-1">
         {error ? (
           <CardContent>failed to load</CardContent>
         ) : (
@@ -88,7 +92,7 @@ function Hourly({
               </CardContent>
             ) : (
               <>
-                <CardHeader>
+                <CardHeader className="flex items-center">
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -96,7 +100,11 @@ function Hourly({
                         data-empty={!date}
                         className="w-fit justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
                       >
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        {date ? (
+                          format(date, "PPP")
+                        ) : (
+                          <span>Last 24 hours</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -105,17 +113,19 @@ function Hourly({
                         selected={date}
                         onSelect={setDate}
                         defaultMonth={date}
+                        endMonth={calendarRangeEnd}
+                        startMonth={calendarRangeStart}
                       />
                     </PopoverContent>
                   </Popover>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-1">
-                  <div className="flex w-full items-center">
-                    <span className="grow">Total scores</span>
-                    <span className="grow text-right text-lg font-semibold">
+                  <div className="w-full text-right">
+                    <span className="text-lg font-semibold">
                       {int.format(stats.totalCount)}
                     </span>
+                    <span className="pl-1">scores</span>
                   </div>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-1">
                   <div className="flex w-full">
                     <span className="grow">Scores with replays</span>
                     <span className="grow text-right font-semibold">
@@ -166,14 +176,50 @@ function Hourly({
                         : "-"}
                     </span>
                   </div>
+                  <div className="flex w-full pb-2">
+                    <span className="grow">Max pp</span>
+                    <span className="grow text-right font-semibold">
+                      {stats.maxPp != null ? (
+                        <a
+                          href={`https://osu.ppy.sh/scores/${stats.maxPpScoreId}`}
+                        >{`${dec.format(stats.maxPp)}pp`}</a>
+                      ) : (
+                        "-"
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex w-full">
+                    <span className="grow pr-2">Most popular beatmap</span>
+                    <span className="grow text-right font-semibold">
+                      {stats.mostPopularBeatmapId != null ? (
+                        <a
+                          href={`https://osu.ppy.sh/beatmaps/${stats.mostPopularBeatmapId}`}
+                        >{`${stats.mostPopularBeatmapId} (${dec.format(stats.mostPopularBeatmapIdPlaycount)} scores)`}</a>
+                      ) : (
+                        "-"
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex w-full">
+                    <span className="grow pr-2">Most active player</span>
+                    <span className="grow text-right font-semibold">
+                      {stats.mostPopularUserId != null ? (
+                        <a
+                          href={`https://osu.ppy.sh/users/${stats.mostPopularUserId}`}
+                        >{`${stats.mostPopularUserId} (${dec.format(stats.mostPopularUserIdPlaycount)} scores)`}</a>
+                      ) : (
+                        "-"
+                      )}
+                    </span>
+                  </div>
                 </CardContent>
               </>
             )}
           </>
         )}
       </Card>
-      <Card className="grow-7">
-        <CardContent className="h-64 w-full pt-8 lg:h-82">
+      <Card className="grow-10">
+        <CardContent className="h-64 w-full pt-8 lg:h-86">
           {error ? (
             <CardContent>failed to load</CardContent>
           ) : (
