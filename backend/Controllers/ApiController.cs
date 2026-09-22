@@ -29,8 +29,8 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
         }
         else
         {
-            // ignore current hour if we're querying fresh data
-            hourlyDate = DateTime.UtcNow.AddHours(-1);
+            // include current hour if we're querying fresh data
+            hourlyDate = DateTime.UtcNow.AddHours(1);
         }
 
         hourlyDate = new DateTime(hourlyDate.Value.Year, hourlyDate.Value.Month, hourlyDate.Value.Day, hourlyDate.Value.Hour, 0, 0, DateTimeKind.Utc);

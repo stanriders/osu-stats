@@ -58,11 +58,13 @@ public class ScoresService(
                     .OrderByDescending(x => x)
                     .FirstOrDefaultAsync(stoppingToken);
 
+#if !DEBUG // if we go too far back API starts throwing 422s at us. this should never happen on prod since we don't get outages that long
                 // never start ahead of what we already have
                 if (currentCursor == 0 || (currentMaxScoreId != 0 && currentCursor > currentMaxScoreId))
                 {
                     currentCursor = currentMaxScoreId;
                 }
+#endif
 
                 if (currentCursor < currentMaxScoreId)
                 {
@@ -144,6 +146,8 @@ public class ScoresService(
             catch (Exception ex)
             {
                 logger.LogError(ex, "ScoresService failed! {Message}", ex.Message);
+                if (ex.Message.Contains("Unprocessable entity"))
+                    currentCursor = 0;
             }
 
             await Task.Delay(interval, stoppingToken);
