@@ -1,12 +1,5 @@
 import useSWR from "swr";
 import { Spinner } from "~/components/ui/spinner";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "~/components/ui/chart";
-import { Area, AreaChart, CartesianGrid, Line, XAxis, YAxis } from "recharts";
-import { type ChartConfig } from "~/components/ui/chart";
 import { ButtonGroup } from "~/components/ui/button-group";
 import { Button } from "~/components/ui/button";
 import { useState } from "react";
@@ -23,8 +16,7 @@ import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { ApiBase } from "~/lib/api";
 import { type Mod } from "~/lib/mods";
 import ModsPopover from "~/components/mods-popover";
-
-const chartConfig = {} satisfies ChartConfig;
+import ScoreGraph from "~/components/score-graph";
 
 const fetcher = (...args: any[]) =>
   fetch(...args).then((res) => {
@@ -217,51 +209,14 @@ function Hourly({
               {isLoading ? (
                 <Spinner />
               ) : (
-                <ChartContainer config={chartConfig} className="h-full w-full">
-                  <AreaChart
-                    responsive
-                    data={countByHour}
-                    margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
-                    style={{ overflow: "visible" }}
-                  >
-                    <CartesianGrid />
-                    {showUnfiltered ? (
-                      <Area
-                        dataKey="unfiltered"
-                        name="Total"
-                        stroke="var(--color-pink-400)"
-                        fill={
-                          data.filtered ? "#00000000" : "var(--color-pink-400)"
-                        }
-                        fillOpacity={0.2}
-                        strokeWidth={2}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                    {data.filtered ? (
-                      <Area
-                        dataKey="filtered"
-                        name="Filtered"
-                        stroke="var(--color-violet-400)"
-                        fill="var(--color-violet-400)"
-                        fillOpacity={0.2}
-                        strokeWidth={2}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                    <XAxis
-                      dataKey="hour"
-                      tickFormatter={(v) => hourFormatter.format(new Date(v))}
-                    />
-                    <YAxis width="auto" niceTicks="snap125" />
-                    <ChartTooltip
-                      content={<ChartTooltipContent />}
-                      labelFormatter={(v) => hourFormatter.format(new Date(v))}
-                    />
-                  </AreaChart>
-                </ChartContainer>
+                <ScoreGraph
+                  data={countByHour}
+                  hasFiltered={data.filtered}
+                  showUnfiltered={showUnfiltered}
+                  xAxisFormatter={hourFormatter}
+                  tooltipFormatter={hourFormatter}
+                  xAxisDataKey="hour"
+                />
               )}
             </>
           )}
@@ -323,59 +278,15 @@ function Graphs({
               {isLoading ? (
                 <Spinner />
               ) : (
-                <ChartContainer
-                  config={chartConfig}
-                  className="h-full w-full fill-pink-600 stroke-pink-600"
-                >
-                  <AreaChart
-                    responsive
-                    data={countByMonth}
-                    className="fill-pink-600 stroke-pink-600"
-                    margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
-                    style={{ overflow: "visible" }}
-                  >
-                    <CartesianGrid />
-                    {showUnfiltered ? (
-                      <Area
-                        dataKey="unfiltered"
-                        name="Total"
-                        stroke="var(--color-pink-400)"
-                        fill={
-                          data.filtered ? "#00000000" : "var(--color-pink-400)"
-                        }
-                        fillOpacity={0.2}
-                        strokeWidth={2}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                    {data.filtered ? (
-                      <Area
-                        dataKey="filtered"
-                        name="Filtered"
-                        stroke="var(--color-violet-400)"
-                        fill="var(--color-violet-400)"
-                        fillOpacity={0.2}
-                        strokeWidth={2}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                    <XAxis
-                      dataKey="date"
-                      tickFormatter={(v) => monthFormatter.format(new Date(v))}
-                      width="auto"
-                    />
-                    <YAxis
-                      tickFormatter={compactNumberFormatter.format}
-                      niceTicks="snap125"
-                    />
-                    <ChartTooltip
-                      content={<ChartTooltipContent />}
-                      labelFormatter={(v) => monthFormatter.format(new Date(v))}
-                    />
-                  </AreaChart>
-                </ChartContainer>
+                <ScoreGraph
+                  data={countByMonth}
+                  hasFiltered={data.filtered}
+                  showUnfiltered={showUnfiltered}
+                  xAxisFormatter={monthFormatter}
+                  yAxisFormatter={compactNumberFormatter}
+                  tooltipFormatter={monthFormatter}
+                  xAxisDataKey="date"
+                />
               )}
             </>
           )}
@@ -391,55 +302,15 @@ function Graphs({
               {isLoading ? (
                 <Spinner />
               ) : (
-                <ChartContainer config={chartConfig} className="h-full w-full">
-                  <AreaChart
-                    responsive
-                    data={countByDay}
-                    margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
-                    style={{ overflow: "visible" }}
-                  >
-                    <CartesianGrid />
-                    {showUnfiltered ? (
-                      <Area
-                        dataKey="unfiltered"
-                        name="Total"
-                        stroke="var(--color-pink-400)"
-                        fill={
-                          data.filtered ? "#00000000" : "var(--color-pink-400)"
-                        }
-                        fillOpacity={0.2}
-                        strokeWidth={2}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                    {data.filtered ? (
-                      <Area
-                        dataKey="filtered"
-                        name="Filtered"
-                        stroke="var(--color-violet-400)"
-                        fill="var(--color-violet-400)"
-                        fillOpacity={0.2}
-                        strokeWidth={2}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                    <XAxis
-                      dataKey="date"
-                      tickFormatter={(v) => dayFormatter.format(new Date(v))}
-                      width="auto"
-                    />
-                    <YAxis
-                      tickFormatter={compactNumberFormatter.format}
-                      niceTicks="snap125"
-                    />
-                    <ChartTooltip
-                      content={<ChartTooltipContent className="min-w-35 p-2" />}
-                      labelFormatter={(v) => dayFormatter.format(new Date(v))}
-                    />
-                  </AreaChart>
-                </ChartContainer>
+                <ScoreGraph
+                  data={countByDay}
+                  hasFiltered={data.filtered}
+                  showUnfiltered={showUnfiltered}
+                  xAxisFormatter={dayFormatter}
+                  yAxisFormatter={compactNumberFormatter}
+                  tooltipFormatter={dayFormatter}
+                  xAxisDataKey="date"
+                />
               )}
             </>
           )}
@@ -454,7 +325,7 @@ export default function Home() {
   const [modsInclude, setModsInclude] = useState<Array<Mod>>([]);
   const [modsExclude, setModsExclude] = useState<Array<Mod>>([]);
   const [showUnfiltered, setShowUnfiltered] = useState<boolean>(true);
-  const [showModSettings, setShowModSettings] = useState<boolean>(false);
+  //const [showModSettings, setShowModSettings] = useState<boolean>(false);
 
   let query = "";
   if (ruleset != null) query += `rulesetId=${ruleset}&`;
@@ -480,8 +351,8 @@ export default function Home() {
   const hasMods = modsInclude.length > 0 || modsExclude.length > 0;
 
   // reset to defaults if no filtering
-  if (!hasMods && showModSettings) setShowModSettings(false);
-  if (hasMods && showModSettings) query += `hasSettings=true&`;
+  //if (!hasMods && showModSettings) setShowModSettings(false);
+  //if (hasMods && showModSettings) query += `hasSettings=true&`;
   if (query == "" && !showUnfiltered) setShowUnfiltered(true);
 
   const handleRulesetChange = (e: any) => {
@@ -583,7 +454,7 @@ export default function Home() {
                     Show unfiltered graph
                   </FieldLabel>
                 </Field>
-                {hasMods ? (
+                {/*hasMods ? (
                   <Field orientation="horizontal">
                     <Checkbox
                       checked={showModSettings}
@@ -596,7 +467,7 @@ export default function Home() {
                   </Field>
                 ) : (
                   <></>
-                )}
+                )*/}
               </FieldGroup>
             </CardContent>
           </Card>

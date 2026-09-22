@@ -21,7 +21,7 @@ export default function ModsPopover({
           <span>{name}</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="max-w-170 min-w-100" align="center">
+      <PopoverContent className="max-w-200 min-w-100" align="center">
         {Mods.filter((x) =>
           ruleset != null
             ? x.types.some((m) => m.rulesets.indexOf(ruleset) != -1)
