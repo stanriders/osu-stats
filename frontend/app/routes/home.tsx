@@ -27,13 +27,6 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { ApiBase } from "~/lib/api";
 
-export function meta() {
-  return [
-    { title: "osu! score stats" },
-    { name: "description", content: "osu! score stats" },
-  ];
-}
-
 const chartConfig = {} satisfies ChartConfig;
 
 const fetcher = (...args: any[]) =>
