@@ -193,7 +193,7 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
     private async Task<Stats> GetUnfilteredStats()
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var oldest = await databaseContext.DailyAggregates.MinAsync(x => x.Date);
+        var oldest = today.AddDays(-90); //await databaseContext.DailyAggregates.MinAsync(x => x.Date));
 
         var aggregated = await databaseContext.DailyAggregates
             .Where(x => x.Date >= oldest && x.Date < today)
