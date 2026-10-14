@@ -120,15 +120,10 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
                 .Where(s => s.Mods.Any(m => m.Settings.Count > 0));
         }*/
 
-        var unfilteredTask = GetUnfilteredStats(anyFiltersEnabled);
-        var filteredTask = anyFiltersEnabled ? GetStats(query) : null;
-
-        await Task.WhenAll(new Task?[] { unfilteredTask, filteredTask }.Where(x => x != null).Select(x=> x!));
-
         return Ok(new
         {
-            Unfiltered = unfilteredTask.Result,
-            Filtered = anyFiltersEnabled ? filteredTask!.Result : null
+            Unfiltered = await GetUnfilteredStats(anyFiltersEnabled),
+            Filtered = anyFiltersEnabled ? await GetStats(query) : null
         });
     }
 
