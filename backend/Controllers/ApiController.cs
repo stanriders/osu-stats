@@ -85,11 +85,12 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] int? rulesetId, [FromQuery] string[]? modsInclude, [FromQuery] string[]? modsExclude, [FromQuery] bool? hasSettings)
     {
-        var unfiltered = await GetUnfilteredStats();
-
         var anyFiltersEnabled = rulesetId != null || modsInclude is { Length: > 0 } || modsExclude is { Length: > 0 } /*|| hasSettings != null*/;
 
-        var query = databaseContext.Scores.AsNoTracking().Where(x => x.Date < DateTime.UtcNow); // exclude future partitions
+        var query = databaseContext.Scores.AsNoTracking()
+            .Where(x => x.Date < DateTime.UtcNow) // exclude future partitions
+            .Where(x => x.Date >= DateTime.UtcNow.AddDays(-90))
+            .AsQueryable();
 
         if (rulesetId != null)
         {
@@ -119,10 +120,15 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
                 .Where(s => s.Mods.Any(m => m.Settings.Count > 0));
         }*/
 
+        var unfilteredTask = GetUnfilteredStats(anyFiltersEnabled);
+        var filteredTask = anyFiltersEnabled ? GetStats(query) : null;
+
+        await Task.WhenAll(new Task?[] { unfilteredTask, filteredTask }.Where(x => x != null).Select(x=> x!));
+
         return Ok(new
         {
-            Unfiltered = unfiltered,
-            Filtered = anyFiltersEnabled ? await GetStats(query) : null
+            Unfiltered = unfilteredTask.Result,
+            Filtered = anyFiltersEnabled ? filteredTask!.Result : null
         });
     }
 
@@ -190,10 +196,10 @@ public class ApiController(DatabaseContext databaseContext, IMemoryCache cache)
         return new Stats(countByMonth, countByDay);
     }
 
-    private async Task<Stats> GetUnfilteredStats()
+    private async Task<Stats> GetUnfilteredStats(bool useFilteredCutoff)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var oldest = today.AddDays(-90); //await databaseContext.DailyAggregates.MinAsync(x => x.Date));
+        var oldest = useFilteredCutoff ? today.AddDays(-90) : await databaseContext.DailyAggregates.MinAsync(x => x.Date);
 
         var aggregated = await databaseContext.DailyAggregates
             .Where(x => x.Date >= oldest && x.Date < today)
