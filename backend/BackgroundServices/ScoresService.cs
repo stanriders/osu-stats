@@ -113,7 +113,8 @@ public class ScoresService(
 
                 foreach (var score in scoreResponse.Scores)
                 {
-                    if (existingIds.Contains(score.Id))
+                    // Add() returns false for ids already in the db *and* for duplicates within this batch
+                    if (!existingIds.Add(score.Id))
                         continue;
 
                     context.Scores.Add(new Score
